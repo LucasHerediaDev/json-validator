@@ -3,7 +3,47 @@ function isUUID(str) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 }
 function isCPF(str) {
-  return /^\d{11}$/.test(str);
+  // Validação de CPF com dígitos verificadores
+  if (!/^\d{11}$/.test(str)) return false;
+  const allEqual = /^(\d)\1{10}$/.test(str);
+  if (allEqual) return false;
+  const nums = str.split('').map((n) => parseInt(n, 10));
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += nums[i] * (10 - i);
+  let d1 = (sum * 10) % 11;
+  if (d1 === 10) d1 = 0;
+  if (d1 !== nums[9]) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += nums[i] * (11 - i);
+  let d2 = (sum * 10) % 11;
+  if (d2 === 10) d2 = 0;
+  return d2 === nums[10];
+}
+function isCNPJ(cnpj) {
+  cnpj = cnpj.replace(/[^\d]+/g, '');
+  if (cnpj.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(cnpj)) return false;
+  let tamanho = cnpj.length - 2;
+  let numeros = cnpj.substring(0, tamanho);
+  let digitos = cnpj.substring(tamanho);
+  let soma = 0;
+  let pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado !== Number(digitos.charAt(0))) return false;
+  tamanho += 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  return resultado === Number(digitos.charAt(1));
 }
 function isCodigoCategoria(str) {
   return /^\d{4}$/.test(str);
@@ -12,6 +52,31 @@ function isCodigoCategoria(str) {
 function validarBody(body) {
   const erros = [];
   const validos = [];
+  
+  // Campos permitidos pela documentação (extras não devem ser enviados)
+  const allowedKeys = [
+    'chaveIdempotencia',
+    'chavePix',
+    'codigoCategoria',
+    'recebedorNome',
+    'devedorDocumento',
+    'devedorNome',
+    'cidade',
+    'valorOriginal',
+    'modalidadeAlteracao',
+    'expiracaoEmSegundos',
+    'reutilizavel',
+    'tid',
+    // opcionais
+    'solicitacaoPagador',
+    'cep',
+    'dadosAdicionais'
+  ];
+  Object.keys(body || {}).forEach((key) => {
+    if (!allowedKeys.includes(key)) {
+      erros.push(`❌ Campo "${key}" não é permitido pela documentação.`);
+    }
+  });
 
   // chaveIdempotencia
   if (!body.chaveIdempotencia) {
@@ -31,11 +96,11 @@ function validarBody(body) {
     validos.push('✅ Campo "chavePix" válido.');
   }
 
-  // codigoCategoria
+  // codigoCategoria (MCC - 4 dígitos)
   if (!body.codigoCategoria) {
     erros.push('❌ Campo "codigoCategoria" é obrigatório.');
   } else if (typeof body.codigoCategoria !== 'string' || !isCodigoCategoria(body.codigoCategoria)) {
-    erros.push('❌ Campo "codigoCategoria" deve conter 4 dígitos.');
+    erros.push('❌ Campo "codigoCategoria" deve ser string com 4 dígitos (MCC).');
   } else {
     validos.push('✅ Campo "codigoCategoria" válido.');
   }
@@ -43,35 +108,58 @@ function validarBody(body) {
   // recebedorNome
   if (!body.recebedorNome) {
     erros.push('❌ Campo "recebedorNome" é obrigatório.');
-  } else if (typeof body.recebedorNome !== 'string' || body.recebedorNome.trim().length < 3) {
-    erros.push('❌ Campo "recebedorNome" deve ter no mínimo 3 caracteres.');
+  } else if (typeof body.recebedorNome !== 'string' || body.recebedorNome.trim().length < 2) {
+    erros.push('❌ Campo "recebedorNome" deve ter no mínimo 2 caracteres.');
   } else {
-    validos.push('✅ Campo "recebedorNome" válido.');
+    const nome = body.recebedorNome.trim();
+    if (nome.length > 25) {
+      erros.push('❌ Campo "recebedorNome" não pode exceder 25 caracteres.');
+    } else {
+      validos.push('✅ Campo "recebedorNome" válido.');
+    }
   }
 
-  // solicitacaoPagador
-  if (body.solicitacaoPagador === undefined) {
-    erros.push('❌ Campo "solicitacaoPagador" é obrigatório.');
-  } else if (typeof body.solicitacaoPagador !== 'string' || body.solicitacaoPagador.trim().length === 0) {
-    erros.push('❌ Campo "solicitacaoPagador" não pode ser vazio.');
-  } else {
-    validos.push('✅ Campo "solicitacaoPagador" válido.');
+  // solicitacaoPagador (opcional - valida somente se existir, aceita null)
+  if (Object.prototype.hasOwnProperty.call(body, 'solicitacaoPagador')) {
+    if (body.solicitacaoPagador === null) {
+      validos.push('✅ Campo "solicitacaoPagador" presente como null (aceito).');
+    } else {
+      // Não aplicar validações rígidas; apenas verificar tipo básico se informado
+      if (typeof body.solicitacaoPagador === 'string') {
+        validos.push('✅ Campo "solicitacaoPagador" válido.');
+      } else {
+        // Não falhar de forma rígida: mensagem mais branda
+        erros.push('❌ Campo "solicitacaoPagador" deve ser string ou null quando enviado.');
+      }
+    }
   }
 
-  // devedorDocumento
+  // devedorDocumento (CPF ou CNPJ válido)
   if (!body.devedorDocumento) {
     erros.push('❌ Campo "devedorDocumento" é obrigatório.');
-  } else if (typeof body.devedorDocumento !== 'string' || !isCPF(body.devedorDocumento)) {
-    erros.push('❌ Campo "devedorDocumento" deve ter 11 dígitos (CPF).');
-  } else {
-    validos.push('✅ Campo "devedorDocumento" válido.');
+  } else if (typeof body.devedorDocumento !== 'string') {
+    erros.push('❌ Campo "devedorDocumento" deve ser string.');
+  } else if (!/^\d{11}$/.test(body.devedorDocumento) && !/^\d{14}$/.test(body.devedorDocumento)) {
+    erros.push('❌ Campo "devedorDocumento" deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).');
+  } else if (/^\d{11}$/.test(body.devedorDocumento)) {
+    if (!isCPF(body.devedorDocumento)) {
+      erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
+    } else {
+      validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
+    }
+  } else if (/^\d{14}$/.test(body.devedorDocumento)) {
+    if (!isCNPJ(body.devedorDocumento)) {
+      erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
+    } else {
+      validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
+    }
   }
 
   // devedorNome
   if (!body.devedorNome) {
     erros.push('❌ Campo "devedorNome" é obrigatório.');
-  } else if (typeof body.devedorNome !== 'string' || body.devedorNome.trim().length < 3) {
-    erros.push('❌ Campo "devedorNome" deve ter no mínimo 3 caracteres.');
+  } else if (typeof body.devedorNome !== 'string' || body.devedorNome.trim().length < 2) {
+    erros.push('❌ Campo "devedorNome" deve ter no mínimo 2 caracteres.');
   } else {
     validos.push('✅ Campo "devedorNome" válido.');
   }
@@ -79,52 +167,62 @@ function validarBody(body) {
   // cidade
   if (!body.cidade) {
     erros.push('❌ Campo "cidade" é obrigatório.');
-  } else if (typeof body.cidade !== 'string' || body.cidade.trim().length === 0) {
-    erros.push('❌ Campo "cidade" não pode ser vazio.');
+  } else if (typeof body.cidade !== 'string' || body.cidade.trim().length < 2) {
+    erros.push('❌ Campo "cidade" deve ter no mínimo 2 caracteres.');
   } else {
-    validos.push('✅ Campo "cidade" válido.');
+    const cidadeVal = body.cidade.trim();
+    if (/\s/.test(cidadeVal)) {
+      erros.push('❌ Campo "cidade" não deve conter espaços.');
+    } else {
+      validos.push('✅ Campo "cidade" válido.');
+      if (cidadeVal.length > 20) {
+        validos.push('⚠️ Campo "cidade" excede 20 caracteres (recomendação).');
+      }
+    }
   }
 
-  // cep (opcional)
-  if (body.cep !== undefined && body.cep !== null) {
-    if (typeof body.cep !== 'string') {
-      erros.push('❌ Campo "cep" deve ser string ou null.');
+  // cep (opcional - valida somente se existir, aceita null; sem validações rígidas)
+  if (Object.prototype.hasOwnProperty.call(body, 'cep')) {
+    if (body.cep === null) {
+      validos.push('✅ Campo "cep" presente como null (aceito).');
     } else {
-      validos.push('✅ Campo "cep" válido.');
+      validos.push('✅ Campo "cep" informado (validação flexível conforme documentação).');
     }
   }
 
   // valorOriginal
   if (body.valorOriginal === undefined) {
     erros.push('❌ Campo "valorOriginal" é obrigatório.');
-  } else if (typeof body.valorOriginal !== 'number' || !(body.valorOriginal > 0)) {
-    erros.push('❌ Campo "valorOriginal" deve ser um número maior que 0.');
+  } else if (typeof body.valorOriginal !== 'number' || Number.isNaN(body.valorOriginal)) {
+    erros.push('❌ Campo "valorOriginal" deve ser numérico (sem aspas).');
   } else {
     validos.push('✅ Campo "valorOriginal" válido.');
   }
 
-  // modalidadeAlteracao
+  // modalidadeAlteracao (inteiro 0 ou 1)
   if (body.modalidadeAlteracao === undefined) {
     erros.push('❌ Campo "modalidadeAlteracao" é obrigatório.');
-  } else if (typeof body.modalidadeAlteracao !== 'number' || ![0,1].includes(body.modalidadeAlteracao)) {
-    erros.push('❌ Campo "modalidadeAlteracao" deve ser 0 ou 1.');
+  } else if (typeof body.modalidadeAlteracao !== 'number' || !Number.isInteger(body.modalidadeAlteracao) || ![0,1].includes(body.modalidadeAlteracao)) {
+    erros.push('❌ Campo "modalidadeAlteracao" deve ser inteiro (0 ou 1).');
   } else {
     validos.push('✅ Campo "modalidadeAlteracao" válido.');
   }
 
-  // expiracaoEmSegundos
+  // expiracaoEmSegundos (inteiro entre 60 e 86400)
   if (body.expiracaoEmSegundos === undefined) {
     erros.push('❌ Campo "expiracaoEmSegundos" é obrigatório.');
-  } else if (typeof body.expiracaoEmSegundos !== 'number' || body.expiracaoEmSegundos < 60 || body.expiracaoEmSegundos > 86400) {
-    erros.push('❌ Campo "expiracaoEmSegundos" deve ser um número entre 60 e 86400.');
+  } else if (typeof body.expiracaoEmSegundos !== 'number' || !Number.isInteger(body.expiracaoEmSegundos) || body.expiracaoEmSegundos < 60 || body.expiracaoEmSegundos > 86400) {
+    erros.push('❌ Campo "expiracaoEmSegundos" deve ser um inteiro entre 60 e 86400.');
   } else {
     validos.push('✅ Campo "expiracaoEmSegundos" válido.');
   }
 
-  // dadosAdicionais (opcional)
-  if (body.dadosAdicionais !== undefined && body.dadosAdicionais !== null) {
-    if (!Array.isArray(body.dadosAdicionais)) {
-      erros.push('❌ Campo "dadosAdicionais" deve ser um array ou null.');
+  // dadosAdicionais (opcional - valida somente se existir, aceita null)
+  if (Object.prototype.hasOwnProperty.call(body, 'dadosAdicionais')) {
+    if (body.dadosAdicionais === null) {
+      validos.push('✅ Campo "dadosAdicionais" presente como null (aceito).');
+    } else if (!Array.isArray(body.dadosAdicionais)) {
+      erros.push('❌ Campo "dadosAdicionais" deve ser um array ou null quando enviado.');
     } else {
       validos.push('✅ Campo "dadosAdicionais" válido.');
     }
@@ -139,11 +237,11 @@ function validarBody(body) {
     validos.push('✅ Campo "reutilizavel" válido.');
   }
 
-  // tid
+  // tid (string, mínimo 6 caracteres conforme exemplo oficial)
   if (!body.tid) {
     erros.push('❌ Campo "tid" é obrigatório.');
-  } else if (typeof body.tid !== 'string' || body.tid.length < 10) {
-    erros.push('❌ Campo "tid" deve ter no mínimo 10 caracteres.');
+  } else if (typeof body.tid !== 'string' || body.tid.length < 6) {
+    erros.push('❌ Campo "tid" deve ter no mínimo 6 caracteres.');
   } else {
     validos.push('✅ Campo "tid" válido.');
   }
@@ -166,10 +264,19 @@ const countErros = document.getElementById('count-erros');
 const countValidos = document.getElementById('count-validos');
 
 function renderLine(type, text) {
-  const div = document.createElement('div');
-  div.className = type === 'error' ? 'result-error' : 'result-success';
-  div.textContent = text;
-  return div;
+  // Padronizar: sem emoji no texto, apenas ícone à esquerda
+  let title = type === 'error' ? 'Erro' : 'Sucesso';
+  let message = text.replace(/^([✔️❌✅⚠️]+)\s*/, '');
+  return Object.assign(document.createElement('div'), {
+    className: type === 'error' ? 'result-error' : 'result-success',
+    innerHTML: `
+      <span class="log-icon" aria-hidden="true">${type === 'error' ? '✖' : '✔'}</span>
+      <span class="log-content">
+        <span class="log-title">${title}</span>
+        <span class="log-message">${message}</span>
+      </span>
+    `
+  });
 }
 
 function exibirResultado({ erros, validos }) {
@@ -380,4 +487,5 @@ clearBtn.addEventListener('click', () => {
   resultValid.innerHTML = '';
   countErros.textContent = '0';
   countValidos.textContent = '0';
+  syncHighlight(); // Garante que o destaque do JSON também seja limpo
 });

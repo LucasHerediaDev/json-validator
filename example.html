@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo • Microcash</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .example-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+    .example-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .example-card h2 { margin: 0 0 10px 0; font-size: 1.08rem; }
+    /* Campos - versão limpa, arejada e responsiva */
+    .field {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 14px 14px 14px 16px;
+      border: 1px solid var(--border);
+      background: var(--bg-muted);
+      border-radius: 12px;
+      border-left: 4px solid #46d100;
+    }
+    .field + .field { margin-top: 12px; }
+    .field .name { font-weight: 700; color: #46d100; }
+    .field .detail { color: var(--text-muted); font-size: 0.9rem; }
+    .field .desc { color: var(--text); line-height: 1.55; }
+    /* Reuso da UI do editor para manter identidade visual */
+    .example-editor { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-muted); }
+    .example-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(70,209,0,0.06), transparent); }
+    :root[data-theme="light"] .example-toolbar { background: linear-gradient(180deg, rgba(0,0,0,0.03), transparent); }
+    .example-title { font-weight: 700; color: var(--text); }
+    .copy-btn { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+    .copy-btn:hover { background: #24323a; }
+    :root[data-theme="light"] .copy-btn:hover { background: #eef2f7; }
+    #example-highlight.editor-highlight { position: relative; pointer-events: auto; }
+    .example-fields { padding: 14px; }
+    @media (max-width: 1280px) { .example-grid { grid-template-columns: 1fr; gap: 16px; } }
+    @media (max-width: 900px) {
+      .example-card { padding: 14px; border-radius: 12px; }
+      .example-fields { padding: 10px; }
+      .field { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="public/microcash-logo.png" alt="Microcash" class="sidebar-logo" />
+      </div>
+      <nav class="menu">
+        <a href="index.html" class="menu-item">Validador</a>
+        <a href="#" class="menu-item active">Exemplo</a>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="title-group">
+          <h1>Exemplo de Payload Microcash</h1>
+          <p class="subtitle">Modelo de JSON com explicação de campos para integração Pix.</p>
+        </div>
+        <div class="actions">
+          <a class="doc-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer">Docs</a>
+          <button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">🌙</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="example-grid" style="max-width: 1100px; width: 100%">
+          <div class="example-card">
+            <div class="example-editor">
+              <div class="example-toolbar">
+                <div class="example-title">JSON de Exemplo</div>
+                <button id="copy-example" class="copy-btn" aria-label="Copiar JSON">Copiar</button>
+              </div>
+              <pre id="example-highlight" class="editor-highlight" aria-hidden="false"></pre>
+            </div>
+          </div>
+
+          <div class="example-card">
+            <div class="example-editor">
+              <div class="example-toolbar">
+                <div class="example-title">Explicação de Campos</div>
+              </div>
+              <div class="example-fields">
+                <div class="field">
+                  <div class="name">chaveIdempotencia</div>
+                  <div class="detail">string UUID v4 • obrigatório</div>
+                  <div class="desc">Evita duplicidade de requisições. Deve ser um UUID válido.</div>
+                </div>
+                <div class="field">
+                  <div class="name">chavePix</div>
+                  <div class="detail">string UUID v4 • obrigatório</div>
+                  <div class="desc">Chave Pix vinculada à conta recebedora.</div>
+                </div>
+                <div class="field">
+                  <div class="name">codigoCategoria</div>
+                  <div class="detail">string • obrigatório • MCC 4 dígitos</div>
+                  <div class="desc">Código de categoria do estabelecimento (MCC).</div>
+                </div>
+                <div class="field">
+                  <div class="name">recebedorNome</div>
+                  <div class="detail">string • obrigatório • até 25 caracteres</div>
+                  <div class="desc">Nome do recebedor (recomendado até 25 caracteres).</div>
+                </div>
+                <div class="field">
+                  <div class="name">solicitacaoPagador</div>
+                  <div class="detail">string | null • opcional</div>
+                  <div class="desc">Mensagem exibida ao pagador na cobrança.</div>
+                </div>
+                <div class="field">
+                  <div class="name">devedorDocumento</div>
+                  <div class="detail">string • obrigatório • CPF 11 dígitos ou CNPJ 14</div>
+                  <div class="desc">Documento do pagador, validado conforme regras oficiais.</div>
+                </div>
+                <div class="field">
+                  <div class="name">devedorNome</div>
+                  <div class="detail">string • obrigatório • mínimo 2 caracteres</div>
+                  <div class="desc">Nome do pagador.</div>
+                </div>
+                <div class="field">
+                  <div class="name">cidade</div>
+                  <div class="detail">string • obrigatório • sem espaços</div>
+                  <div class="desc">Cidade do recebedor (ex.: Aracaju).</div>
+                </div>
+                <div class="field">
+                  <div class="name">valorOriginal</div>
+                  <div class="detail">number • obrigatório</div>
+                  <div class="desc">Valor do Pix como número (sem aspas).</div>
+                </div>
+                <div class="field">
+                  <div class="name">modalidadeAlteracao</div>
+                  <div class="detail">integer • obrigatório • 0 ou 1</div>
+                  <div class="desc">Controle de permissão de alteração do valor.</div>
+                </div>
+                <div class="field">
+                  <div class="name">expiracaoEmSegundos</div>
+                  <div class="detail">integer • obrigatório • 60 a 86400</div>
+                  <div class="desc">Tempo de expiração do QR Code dinâmico.</div>
+                </div>
+                <div class="field">
+                  <div class="name">reutilizavel</div>
+                  <div class="detail">boolean • obrigatório</div>
+                  <div class="desc">Indica se o QR Code pode ser reutilizado.</div>
+                </div>
+                <div class="field">
+                  <div class="name">tid</div>
+                  <div class="detail">string • obrigatório • mínimo 6 caracteres</div>
+                  <div class="desc">Identificador da transação.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Reutiliza o mesmo mecanismo de tema da página principal
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        root.setAttribute('data-theme', 'light');
+        if (themeToggle) themeToggle.textContent = '🌞';
+      } else {
+        root.removeAttribute('data-theme');
+        if (themeToggle) themeToggle.textContent = '🌙';
+      }
+      localStorage.setItem('mc-theme', theme);
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem('mc-theme');
+      if (saved === 'light' || saved === 'dark') applyTheme(saved); else applyTheme('dark');
+    })();
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+      });
+    }
+
+    // JSON de exemplo (mantido único aqui)
+    const exampleJson = {
+      chaveIdempotencia: "77912029-a2f4-43a8-8ae0-abfd5a7c1810",
+      chavePix: "fc981de6-4713-4086-a11a-10734c49e4e1",
+      codigoCategoria: "7311",
+      recebedorNome: "MICROCASH TECNOLOGIA",
+      solicitacaoPagador: "Compra de serviço",
+      devedorDocumento: "32623293805",
+      devedorNome: "Kaleo Pinheiro",
+      cidade: "Aracaju",
+      valorOriginal: 1.10,
+      modalidadeAlteracao: 0,
+      expiracaoEmSegundos: 86400,
+      reutilizavel: false,
+      tid: "f2cbe19a-104d-4d27-9aa8-2f711c0089b4"
+    };
+
+    // Highlight de JSON (mesmo esquema da página principal)
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function highlightJSON(text) {
+      let html = escapeHtml(text).replace(/[{}\[\],:]/g, (m) => `<span class="tok-punct">${m}</span>`);
+      html = html.replace(/"([^"\\]|\\.)*"(?=\s*:)/g, (m) => `<span class="tok-key">${m}</span>`);
+      html = html.replace(/(:\s*)"([^"\\]|\\.)*"/g, (m) => m.replace(/"([^"\\]|\\.)*"/, (s) => `<span class="tok-string">${s}</span>`));
+      html = html.replace(/(-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi, '<span class="tok-number">$1</span>');
+      html = html.replace(/\b(true|false)\b/g, '<span class="tok-bool">$1</span>');
+      html = html.replace(/\bnull\b/g, '<span class="tok-null">null</span>');
+      return html;
+    }
+    const exampleHighlight = document.getElementById('example-highlight');
+    if (exampleHighlight) {
+      const formatted = JSON.stringify(exampleJson, null, 2);
+      exampleHighlight.innerHTML = highlightJSON(formatted + (formatted.endsWith('\n') ? '' : '\n'));
+    }
+    const copyExample = document.getElementById('copy-example');
+    if (copyExample) {
+      copyExample.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(exampleJson, null, 2));
+          copyExample.textContent = 'Copiado!';
+          setTimeout(() => (copyExample.textContent = 'Copiar'), 1200);
+        } catch (_) {
+          copyExample.textContent = 'Falhou';
+          setTimeout(() => (copyExample.textContent = 'Copiar'), 1200);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+
+
