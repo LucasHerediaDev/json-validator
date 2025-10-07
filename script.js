@@ -238,14 +238,15 @@ function validarBody(body) {
     validos.push('✅ Campo "expiracaoEmSegundos" válido.');
   }
 
-  // dadosAdicionais (opcional - valida somente se existir, aceita null)
+  // dadosAdicionais (opcional) → deve ser objeto JSON ou null quando enviado
   if (Object.prototype.hasOwnProperty.call(body, 'dadosAdicionais')) {
-    if (body.dadosAdicionais === null) {
+    const da = body.dadosAdicionais;
+    if (da === null) {
       validos.push('✅ Campo "dadosAdicionais" presente como null (aceito).');
-    } else if (!Array.isArray(body.dadosAdicionais)) {
-      erros.push('❌ Campo "dadosAdicionais" deve ser um array ou null quando enviado.');
+    } else if (typeof da === 'object' && !Array.isArray(da)) {
+      validos.push('✅ Campo "dadosAdicionais" (objeto JSON) válido.');
     } else {
-      validos.push('✅ Campo "dadosAdicionais" válido.');
+      erros.push('❌ Campo "dadosAdicionais" deve ser um objeto (JSON) ou null quando enviado.');
     }
   }
 
