@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador de Request Body</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="public/microcash-logo.png" alt="Microcash" class="sidebar-logo" />
+      </div>
+      <nav class="menu">
+        <a href="#" class="menu-item active">Validador</a>
+        <a href="https://docs.microcashif.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer" class="menu-item">Documentação</a>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="title-group">
+          <h1>Validador de Request Body</h1>
+          <p class="subtitle">Cole o JSON, valide e descubra erros rapidamente.</p>
+        </div>
+        <div class="actions">
+          <a class="doc-link" href="https://docs.microcashif.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer">Docs</a>
+          <button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">🌙</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="card">
+          <div class="doc-callout">
+            <div class="doc-callout-title">Documentação oficial Microcash</div>
+            <div class="doc-callout-text">Consulte o schema e regras completas do endpoint de Pix dinâmico. </div>
+            <a class="doc-callout-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer">Abrir guia do endpoint →</a>
+          </div>
+
+          <div class="editor">
+            <div class="editor-toolbar">
+              <div class="editor-title">JSON do Request Body</div>
+              <div class="editor-actions">
+                <button id="copy-json" class="icon-btn" aria-label="Copiar JSON">Copiar</button>
+              </div>
+            </div>
+          <div class="editor-body">
+            <pre id="json-highlight" class="editor-highlight" aria-hidden="true"></pre>
+            <textarea id="json-input" class="editor-area" placeholder="Cole aqui o JSON do body..." rows="14"></textarea>
+          </div>
+          </div>
+
+          <div class="buttons">
+            <button id="validate-btn">Validar JSON</button>
+            <button id="format-btn">Formatar</button>
+            <button id="clear-btn" class="secondary">Limpar</button>
+          </div>
+
+          <div class="result-panels">
+            <div class="panel panel-error">
+              <div class="panel-header">
+                <span>Erros</span>
+                <span id="count-erros" class="badge">0</span>
+              </div>
+              <div id="result-errors" class="panel-body"></div>
+            </div>
+            <div class="panel panel-success">
+              <div class="panel-header">
+                <span>Válidos</span>
+                <span id="count-validos" class="badge">0</span>
+              </div>
+              <div id="result-valid" class="panel-body"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
