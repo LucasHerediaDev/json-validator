@@ -7,6 +7,16 @@ function hasDiacritics(str) {
   // Ex.: "José" → 'Jose' + diacríticos; a regex pega os diacríticos
   return /[\u0300-\u036f]/.test(str.normalize('NFD'));
 }
+function getDecimalPlaces(n) {
+  const s = String(n);
+  if (/e/i.test(s)) {
+    // Converte para decimal fixo e remove zeros à direita
+    const fixed = Number(n).toFixed(20);
+    const frac = (fixed.split('.')[1] || '').replace(/0+$/, '');
+    return frac.length;
+  }
+  return (s.split('.')[1] || '').length;
+}
 function isCPF(str) {
   // Validação de CPF com dígitos verificadores
   if (!/^\d{11}$/.test(str)) return false;
@@ -232,11 +242,11 @@ function validarBody(body) {
     erros.push('❌ Campo "valorOriginal" deve ser numérico (sem aspas).');
   } else {
     const v = body.valorOriginal;
-    // Permitir no máximo 2 casas decimais
+    // Permitir no máximo 2 casas decimais (após o ponto)
     if (!Number.isFinite(v)) {
       erros.push('❌ Campo "valorOriginal" inválido.');
-    } else if (Math.round(v * 100) !== v * 100) {
-      erros.push('❌ Campo "valorOriginal" deve ter no máximo 2 casas decimais.');
+    } else if (getDecimalPlaces(v) > 2) {
+      erros.push('❌ Campo "valorOriginal" deve ter no máximo 2 casas decimais após o ponto.');
     } else {
       validos.push('✅ Campo "valorOriginal" válido.');
     }
@@ -334,6 +344,29 @@ function exibirResultado({ erros, validos }) {
 
   countErros.textContent = String(erros.length);
   countValidos.textContent = String(validos.length);
+
+  // Logs no console para cada mensagem exibida
+  try {
+    if (typeof console !== 'undefined') {
+      if (erros.length || validos.length) {
+        console.groupCollapsed('[Validação] Resultado');
+        if (erros.length) {
+          console.groupCollapsed(`Erros (${erros.length})`);
+          erros.forEach((e) => console.error(e));
+          console.groupEnd();
+        }
+        if (validos.length) {
+          console.groupCollapsed(`Válidos/Avisos (${validos.length})`);
+          validos.forEach((v) => {
+            // Avisos costumam começar com ⚠️; logar como warn
+            if (/^[⚠️]/.test(v)) console.warn(v); else console.log(v);
+          });
+          console.groupEnd();
+        }
+        console.groupEnd();
+      }
+    }
+  } catch (_) {}
 }
 
 const sidebar = document.getElementById('sidebar');
