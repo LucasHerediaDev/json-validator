@@ -2,6 +2,11 @@
 function isUUID(str) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 }
+function hasDiacritics(str) {
+  // Detecta acentos/diacríticos em Unicode combinando após NFD
+  // Ex.: "José" → 'Jose' + diacríticos; a regex pega os diacríticos
+  return /[\u0300-\u036f]/.test(str.normalize('NFD'));
+}
 function isCPF(str) {
   // Validação de CPF com dígitos verificadores
   if (!/^\d{11}$/.test(str)) return false;
@@ -108,11 +113,13 @@ function validarBody(body) {
     }
   }
 
-  // codigoCategoria (MCC - 4 dígitos, deve estar na lista permitida)
+  // codigoCategoria (MCC - deve ser string de 4 dígitos e estar na lista permitida)
   if (body.codigoCategoria === undefined || body.codigoCategoria === null || body.codigoCategoria === '') {
     erros.push('❌ Campo "codigoCategoria" é obrigatório.');
+  } else if (typeof body.codigoCategoria !== 'string') {
+    erros.push('❌ Campo "codigoCategoria" deve ser uma string.');
   } else {
-    const mcc = String(body.codigoCategoria).trim();
+    const mcc = body.codigoCategoria.trim();
     if (!/^\d{4}$/.test(mcc)) {
       erros.push('❌ Campo "codigoCategoria" deve conter 4 dígitos (MCC).');
     } else if (!isCodigoCategoria(mcc)) {
@@ -129,10 +136,14 @@ function validarBody(body) {
     erros.push('❌ Campo "recebedorNome" deve ter no mínimo 2 caracteres.');
   } else {
     const nome = body.recebedorNome.trim();
+    if (hasDiacritics(nome)) {
+      erros.push('❌ Campo "recebedorNome" não deve conter acentos.');
+    } else {
     if (nome.length > 25) {
       erros.push('❌ Campo "recebedorNome" não pode exceder 25 caracteres.');
     } else {
       validos.push('✅ Campo "recebedorNome" válido.');
+    }
     }
   }
 
@@ -151,28 +162,24 @@ function validarBody(body) {
     }
   }
 
-  // devedorDocumento (CPF ou CNPJ válido)
+  // devedorDocumento (CPF ou CNPJ válido) - aceitar apenas dígitos (sem pontuação)
   if (!body.devedorDocumento) {
     erros.push('❌ Campo "devedorDocumento" é obrigatório.');
   } else if (typeof body.devedorDocumento !== 'string') {
     erros.push('❌ Campo "devedorDocumento" deve ser string.');
-  } else {
-    // Normaliza para apenas dígitos para aceitar entradas com pontuação
-    const doc = String(body.devedorDocumento).replace(/\D+/g, '');
-    if (!/^\d{11}$/.test(doc) && !/^\d{14}$/.test(doc)) {
-      erros.push('❌ Campo "devedorDocumento" deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).');
-    } else if (/^\d{11}$/.test(doc)) {
-      if (!isCPF(doc)) {
-        erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
-      } else {
-        validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
-      }
-    } else if (/^\d{14}$/.test(doc)) {
-      if (!isCNPJ(doc)) {
-        erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
-      } else {
-        validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
-      }
+  } else if (!/^\d{11}$/.test(body.devedorDocumento) && !/^\d{14}$/.test(body.devedorDocumento)) {
+    erros.push('❌ Campo "devedorDocumento" deve conter apenas dígitos: 11 (CPF) ou 14 (CNPJ).');
+  } else if (/^\d{11}$/.test(body.devedorDocumento)) {
+    if (!isCPF(body.devedorDocumento)) {
+      erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
+    } else {
+      validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
+    }
+  } else if (/^\d{14}$/.test(body.devedorDocumento)) {
+    if (!isCNPJ(body.devedorDocumento)) {
+      erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
+    } else {
+      validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
     }
   }
 
@@ -182,7 +189,12 @@ function validarBody(body) {
   } else if (typeof body.devedorNome !== 'string' || body.devedorNome.trim().length < 2) {
     erros.push('❌ Campo "devedorNome" deve ter no mínimo 2 caracteres.');
   } else {
-    validos.push('✅ Campo "devedorNome" válido.');
+    const nomeDev = body.devedorNome.trim();
+    if (hasDiacritics(nomeDev)) {
+      erros.push('❌ Campo "devedorNome" não deve conter acentos.');
+    } else {
+      validos.push('✅ Campo "devedorNome" válido.');
+    }
   }
 
   // cidade
@@ -192,7 +204,9 @@ function validarBody(body) {
     erros.push('❌ Campo "cidade" deve ter no mínimo 2 caracteres.');
   } else {
     const cidadeVal = body.cidade.trim();
-    if (/\s/.test(cidadeVal)) {
+    if (hasDiacritics(cidadeVal)) {
+      erros.push('❌ Campo "cidade" não deve conter acentos.');
+    } else if (/\s/.test(cidadeVal)) {
       erros.push('❌ Campo "cidade" não deve conter espaços.');
     } else {
       validos.push('✅ Campo "cidade" válido.');
@@ -217,7 +231,15 @@ function validarBody(body) {
   } else if (typeof body.valorOriginal !== 'number' || Number.isNaN(body.valorOriginal)) {
     erros.push('❌ Campo "valorOriginal" deve ser numérico (sem aspas).');
   } else {
-    validos.push('✅ Campo "valorOriginal" válido.');
+    const v = body.valorOriginal;
+    // Permitir no máximo 2 casas decimais
+    if (!Number.isFinite(v)) {
+      erros.push('❌ Campo "valorOriginal" inválido.');
+    } else if (Math.round(v * 100) !== v * 100) {
+      erros.push('❌ Campo "valorOriginal" deve ter no máximo 2 casas decimais.');
+    } else {
+      validos.push('✅ Campo "valorOriginal" válido.');
+    }
   }
 
   // modalidadeAlteracao (inteiro 0 ou 1)
