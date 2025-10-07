@@ -14,19 +14,20 @@
         <img src="public/microcash-logo.png" alt="Microcash" class="sidebar-logo" />
       </div>
       <nav class="menu">
-        <a href="#" class="menu-item active">Validador</a>
-        <a href="example.html" class="menu-item">Exemplo</a>
+        <a href="#" class="menu-item active" data-i18n="nav_validator">Validador</a>
+        <a href="example.html" class="menu-item" data-i18n="nav_example">Exemplo</a>
       </nav>
     </aside>
 
     <div class="main">
       <header class="topbar">
         <div class="title-group">
-          <h1>Validador de Payload Microcash</h1>
-          <p class="subtitle">Ferramenta oficial para validação de JSONs de integração Pix, seguindo o padrão Microcash.</p>
+          <h1 data-i18n="app_title">Validador de Payload Microcash</h1>
+          <p class="subtitle" data-i18n="app_subtitle">Ferramenta oficial para validação de JSONs de integração Pix, seguindo o padrão Microcash.</p>
         </div>
         <div class="actions">
-          <a class="doc-link" href="https://docs.microcashif.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer">Docs</a>
+          <a class="doc-link" href="https://docs.microcashif.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer" data-i18n="docs">Docs</a>
+          <button id="lang-toggle" class="icon-btn" aria-label="Switch language">PT</button>
           <button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">🌙</button>
         </div>
       </header>
@@ -35,44 +36,44 @@
         <div class="card">
           <div class="editor">
             <div class="editor-toolbar">
-              <div class="editor-title">JSON do Request Body</div>
+              <div class="editor-title" data-i18n="editor_title">JSON do Request Body</div>
               <div class="editor-actions">
-                <button id="copy-json" class="icon-btn" aria-label="Copiar JSON">Copiar</button>
+                <button id="copy-json" class="icon-btn" aria-label="Copiar JSON" data-i18n="copy">Copiar</button>
               </div>
             </div>
           <div class="editor-body">
             <pre id="json-highlight" class="editor-highlight" aria-hidden="true"></pre>
-            <textarea id="json-input" class="editor-area" placeholder="Cole aqui o JSON do body..." rows="14"></textarea>
+            <textarea id="json-input" class="editor-area" placeholder="Cole aqui o JSON do body..." rows="14" data-i18n="placeholder"></textarea>
           </div>
           </div>
 
           
 
           <div class="buttons">
-            <button id="validate-btn">Validar JSON</button>
-            <button id="format-btn">Formatar</button>
-            <button id="clear-btn" class="secondary">Limpar</button>
+            <button id="validate-btn" data-i18n="validate">Validar JSON</button>
+            <button id="format-btn" data-i18n="format">Formatar</button>
+            <button id="clear-btn" class="secondary" data-i18n="clear">Limpar</button>
           </div>
 
           <div class="result-panels">
             <div class="panel panel-error">
               <div class="panel-header">
-                <span>Erros</span>
+                <span data-i18n="errors">Erros</span>
                 <span id="count-erros" class="badge">0</span>
               </div>
               <div id="result-errors" class="panel-body"></div>
             </div>
             <div class="panel panel-success">
               <div class="panel-header">
-                <span>Válidos</span>
+                <span data-i18n="valids">Válidos</span>
                 <span id="count-validos" class="badge">0</span>
               </div>
               <div id="result-valid" class="panel-body"></div>
             </div>
             <div class="doc-callout">
-              <div class="doc-callout-title">Documentação oficial Microcash</div>
-              <div class="doc-callout-text">Consulte o schema e regras completas do endpoint de Pix dinâmico. </div>
-              <a class="doc-callout-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer">Abrir guia do endpoint →</a>
+              <div class="doc-callout-title" data-i18n="doc_callout_title">Documentação oficial Microcash</div>
+              <div class="doc-callout-text" data-i18n="doc_callout_text">Consulte o schema e regras completas do endpoint de Pix dinâmico. </div>
+              <a class="doc-callout-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer" data-i18n="doc_callout_link">Abrir guia do endpoint →</a>
             </div>
           </div>
 
@@ -80,6 +81,18 @@
       </div>
     </div>
   </div>
+  <script src="i18n.js"></script>
+  <script>
+    // Wire language toggle
+    (function(){
+      const btn = document.getElementById('lang-toggle');
+      if (!btn || !window.i18n) return;
+      btn.addEventListener('click', function(){
+        const next = window.i18n.getLang() === 'en' ? 'pt' : 'en';
+        window.i18n.setLang(next);
+      });
+    })();
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

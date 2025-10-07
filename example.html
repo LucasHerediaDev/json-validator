@@ -50,19 +50,20 @@
         <img src="public/microcash-logo.png" alt="Microcash" class="sidebar-logo" />
       </div>
       <nav class="menu">
-        <a href="index.html" class="menu-item">Validador</a>
-        <a href="#" class="menu-item active">Exemplo</a>
+        <a href="index.html" class="menu-item" data-i18n="nav_validator">Validador</a>
+        <a href="#" class="menu-item active" data-i18n="nav_example">Exemplo</a>
       </nav>
     </aside>
 
     <div class="main">
       <header class="topbar">
         <div class="title-group">
-          <h1>Exemplo de Payload Microcash</h1>
-          <p class="subtitle">Modelo de JSON com explicação de campos para integração Pix.</p>
+          <h1 data-i18n="example_title">Exemplo de Payload Microcash</h1>
+          <p class="subtitle" data-i18n="example_subtitle">Modelo de JSON com explicação de campos para integração Pix.</p>
         </div>
         <div class="actions">
-          <a class="doc-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer">Docs</a>
+          <a class="doc-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer" data-i18n="docs">Docs</a>
+          <button id="lang-toggle" class="icon-btn" aria-label="Switch language">PT</button>
           <button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">🌙</button>
         </div>
       </header>
@@ -72,8 +73,8 @@
           <div class="example-card">
             <div class="example-editor">
               <div class="example-toolbar">
-                <div class="example-title">JSON de Exemplo</div>
-                <button id="copy-example" class="copy-btn" aria-label="Copiar JSON">Copiar</button>
+                <div class="example-title" data-i18n="example_json_title">JSON de Exemplo</div>
+                <button id="copy-example" class="copy-btn" aria-label="Copiar JSON" data-i18n="example_copy">Copiar</button>
               </div>
               <pre id="example-highlight" class="editor-highlight" aria-hidden="false"></pre>
             </div>
@@ -82,73 +83,73 @@
           <div class="example-card">
             <div class="example-editor">
               <div class="example-toolbar">
-                <div class="example-title">Explicação de Campos</div>
+                <div class="example-title" data-i18n="example_fields_title">Explicação de Campos</div>
               </div>
               <div class="example-fields">
                 <div class="field">
                   <div class="name">chaveIdempotencia</div>
-                  <div class="detail">string UUID v4 • obrigatório</div>
-                  <div class="desc">Evita duplicidade de requisições. Deve ser um UUID válido.</div>
+                  <div class="detail" data-i18n="field_chaveIdempotencia_detail">string UUID v4 • obrigatório</div>
+                  <div class="desc" data-i18n="field_chaveIdempotencia_desc">Evita duplicidade de requisições. Deve ser um UUID válido.</div>
                 </div>
                 <div class="field">
                   <div class="name">chavePix</div>
-                  <div class="detail">string UUID v4 • obrigatório</div>
-                  <div class="desc">Chave Pix vinculada à conta recebedora.</div>
+                  <div class="detail" data-i18n="field_chavePix_detail">string UUID v4 • obrigatório</div>
+                  <div class="desc" data-i18n="field_chavePix_desc">Chave Pix vinculada à conta recebedora.</div>
                 </div>
                 <div class="field">
                   <div class="name">codigoCategoria</div>
-                  <div class="detail">string • obrigatório • MCC 4 dígitos</div>
-                  <div class="desc">Código de categoria do estabelecimento (MCC).</div>
+                  <div class="detail" data-i18n="field_codigoCategoria_detail">string • obrigatório • MCC 4 dígitos</div>
+                  <div class="desc" data-i18n="field_codigoCategoria_desc">Código de categoria do estabelecimento (MCC).</div>
                 </div>
                 <div class="field">
                   <div class="name">recebedorNome</div>
-                  <div class="detail">string • obrigatório • até 25 caracteres</div>
-                  <div class="desc">Nome do recebedor (recomendado até 25 caracteres).</div>
+                  <div class="detail" data-i18n="field_recebedorNome_detail">string • obrigatório • até 25 caracteres</div>
+                  <div class="desc" data-i18n="field_recebedorNome_desc">Nome do recebedor (recomendado até 25 caracteres).</div>
                 </div>
                 <div class="field">
                   <div class="name">solicitacaoPagador</div>
-                  <div class="detail">string | null • opcional</div>
-                  <div class="desc">Mensagem exibida ao pagador na cobrança.</div>
+                  <div class="detail" data-i18n="field_solicitacaoPagador_detail">string | null • opcional</div>
+                  <div class="desc" data-i18n="field_solicitacaoPagador_desc">Mensagem exibida ao pagador na cobrança.</div>
                 </div>
                 <div class="field">
                   <div class="name">devedorDocumento</div>
-                  <div class="detail">string • obrigatório • CPF 11 dígitos ou CNPJ 14</div>
-                  <div class="desc">Documento do pagador, validado conforme regras oficiais.</div>
+                  <div class="detail" data-i18n="field_devedorDocumento_detail">string • obrigatório • CPF 11 dígitos ou CNPJ 14</div>
+                  <div class="desc" data-i18n="field_devedorDocumento_desc">Documento do pagador, validado conforme regras oficiais.</div>
                 </div>
                 <div class="field">
                   <div class="name">devedorNome</div>
-                  <div class="detail">string • obrigatório • mínimo 2 caracteres</div>
-                  <div class="desc">Nome do pagador.</div>
+                  <div class="detail" data-i18n="field_devedorNome_detail">string • obrigatório • mínimo 2 caracteres</div>
+                  <div class="desc" data-i18n="field_devedorNome_desc">Nome do pagador.</div>
                 </div>
                 <div class="field">
                   <div class="name">cidade</div>
-                  <div class="detail">string • obrigatório • sem espaços</div>
-                  <div class="desc">Cidade do recebedor (ex.: Aracaju).</div>
+                  <div class="detail" data-i18n="field_cidade_detail">string • obrigatório • sem espaços</div>
+                  <div class="desc" data-i18n="field_cidade_desc">Cidade do recebedor (ex.: Aracaju).</div>
                 </div>
                 <div class="field">
                   <div class="name">valorOriginal</div>
-                  <div class="detail">number • obrigatório</div>
-                  <div class="desc">Valor do Pix como número (sem aspas).</div>
+                  <div class="detail" data-i18n="field_valorOriginal_detail">number • obrigatório</div>
+                  <div class="desc" data-i18n="field_valorOriginal_desc">Valor do Pix como número (sem aspas).</div>
                 </div>
                 <div class="field">
                   <div class="name">modalidadeAlteracao</div>
-                  <div class="detail">integer • obrigatório • 0 ou 1</div>
-                  <div class="desc">Controle de permissão de alteração do valor.</div>
+                  <div class="detail" data-i18n="field_modalidadeAlteracao_detail">integer • obrigatório • 0 ou 1</div>
+                  <div class="desc" data-i18n="field_modalidadeAlteracao_desc">Controle de permissão de alteração do valor.</div>
                 </div>
                 <div class="field">
                   <div class="name">expiracaoEmSegundos</div>
-                  <div class="detail">integer • obrigatório • 60 a 86400</div>
-                  <div class="desc">Tempo de expiração do QR Code dinâmico.</div>
+                  <div class="detail" data-i18n="field_expiracaoEmSegundos_detail">integer • obrigatório • 60 a 86400</div>
+                  <div class="desc" data-i18n="field_expiracaoEmSegundos_desc">Tempo de expiração do QR Code dinâmico.</div>
                 </div>
                 <div class="field">
                   <div class="name">reutilizavel</div>
-                  <div class="detail">boolean • obrigatório</div>
-                  <div class="desc">Indica se o QR Code pode ser reutilizado.</div>
+                  <div class="detail" data-i18n="field_reutilizavel_detail">boolean • obrigatório</div>
+                  <div class="desc" data-i18n="field_reutilizavel_desc">Indica se o QR Code pode ser reutilizado.</div>
                 </div>
                 <div class="field">
                   <div class="name">tid</div>
-                  <div class="detail">string • obrigatório • mínimo 6 caracteres</div>
-                  <div class="desc">Identificador da transação.</div>
+                  <div class="detail" data-i18n="field_tid_detail">string • obrigatório • mínimo 6 caracteres</div>
+                  <div class="desc" data-i18n="field_tid_desc">Identificador da transação.</div>
                 </div>
               </div>
             </div>
@@ -158,6 +159,7 @@
     </div>
   </div>
 
+  <script src="i18n.js"></script>
   <script>
     // Reutiliza o mesmo mecanismo de tema da página principal
     const root = document.documentElement;
@@ -182,6 +184,16 @@
         applyTheme(current === 'light' ? 'dark' : 'light');
       });
     }
+
+    // Toggle de linguagem
+    (function(){
+      const btn = document.getElementById('lang-toggle');
+      if (!btn || !window.i18n) return;
+      btn.addEventListener('click', function(){
+        const next = window.i18n.getLang() === 'en' ? 'pt' : 'en';
+        window.i18n.setLang(next);
+      });
+    })();
 
     // JSON de exemplo (mantido único aqui)
     const exampleJson = {
@@ -223,11 +235,11 @@
       copyExample.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(JSON.stringify(exampleJson, null, 2));
-          copyExample.textContent = 'Copiado!';
-          setTimeout(() => (copyExample.textContent = 'Copiar'), 1200);
+          copyExample.textContent = (window.i18n ? window.i18n.t('example_copied') : 'Copiado!');
+          setTimeout(() => (copyExample.textContent = (window.i18n ? window.i18n.t('example_copy') : 'Copiar')), 1200);
         } catch (_) {
-          copyExample.textContent = 'Falhou';
-          setTimeout(() => (copyExample.textContent = 'Copiar'), 1200);
+          copyExample.textContent = (window.i18n ? window.i18n.t('example_failed') : 'Falhou');
+          setTimeout(() => (copyExample.textContent = (window.i18n ? window.i18n.t('example_copy') : 'Copiar')), 1200);
         }
       });
     }

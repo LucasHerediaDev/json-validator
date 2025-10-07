@@ -411,11 +411,11 @@ if (copyBtn) {
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(input.value || '');
-      copyBtn.textContent = 'Copiado!';
-      setTimeout(() => (copyBtn.textContent = 'Copiar'), 1200);
+      copyBtn.textContent = (window.i18n ? window.i18n.t('copied') : 'Copiado!');
+      setTimeout(() => (copyBtn.textContent = (window.i18n ? window.i18n.t('copy') : 'Copiar')), 1200);
     } catch (e) {
-      copyBtn.textContent = 'Falhou';
-      setTimeout(() => (copyBtn.textContent = 'Copiar'), 1200);
+      copyBtn.textContent = (window.i18n ? window.i18n.t('copy_failed') : 'Falhou');
+      setTimeout(() => (copyBtn.textContent = (window.i18n ? window.i18n.t('copy') : 'Copiar')), 1200);
     }
   });
 }
@@ -504,7 +504,7 @@ function formatJsonInTextarea() {
     if (resultErrors) resultErrors.innerHTML = '';
     if (resultValid) {
       resultValid.innerHTML = '';
-      resultValid.appendChild(renderLine('success', '✅ JSON formatado com sucesso.'));
+      resultValid.appendChild(renderLine('success', '✅ ' + ((window.i18n && window.i18n.getLang() === 'en') ? 'JSON formatted successfully.' : 'JSON formatado com sucesso.')));
     }
     if (countErros) countErros.textContent = '0';
     if (countValidos) countValidos.textContent = '1';
@@ -550,7 +550,7 @@ validateBtn.addEventListener('click', () => {
     input.value = JSON.stringify(json, null, 2);
     syncHighlight();
   } catch (e) {
-    const msg = '❌ JSON inválido.';
+    const msg = (window.i18n && window.i18n.getLang() === 'en') ? '❌ Invalid JSON.' : '❌ JSON inválido.';
     resultErrors.appendChild(renderLine('error', msg));
     try { if (typeof console !== 'undefined') console.error(msg); } catch(_) {}
     countErros.textContent = '1';
