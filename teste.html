@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Validador CPF / CNPJ</title>
+  <style>
+    :root{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f7fb;margin:0;padding:20px}
+    .card{background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(20,30,60,0.08);width:420px;padding:24px}
+    h1{margin:0 0 12px;font-size:20px}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{flex:1;padding:8px 12px;text-align:center;border-radius:8px;cursor:pointer;border:1px solid transparent}
+    .tab.active{background:#eef6ff;border-color:#cfe8ff}
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #dde6f2;font-size:15px}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    button{padding:10px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn-validate{background:#2563eb;color:#fff}
+    .btn-clear{background:#eef2f7}
+    .result{margin-top:14px;padding:12px;border-radius:8px;font-weight:600}
+    .valid{background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0}
+    .invalid{background:#fff1f2;color:#7f1d1d;border:1px solid #fecaca}
+    .hint{font-size:12px;color:#6b7280;margin-top:8px}
+    small{display:block;margin-top:6px;color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Validador CPF &amp; CNPJ</h1>
+
+    <div class="tabs">
+      <div id="tab-cpf" class="tab active">CPF</div>
+      <div id="tab-cnpj" class="tab">CNPJ</div>
+    </div>
+
+    <label id="label-input" for="id-input">CPF</label>
+    <input id="id-input" type="text" inputmode="numeric" placeholder="Digite o CPF ou CNPJ" maxlength="18" />
+
+    <div class="controls">
+      <button id="validate" class="btn-validate">Validar</button>
+      <button id="clear" class="btn-clear">Limpar</button>
+    </div>
+
+    <div id="result" class="result" style="display:none"></div>
+
+    <div class="hint">Formatos aceitos: apenas números ou com pontos/traços (ex.: 123.456.789-09 ou 12.345.678/0001-95). A validação segue o algoritmo oficial.</div>
+    <small>Implementação em JavaScript — código aberto e fácil de integrar ao seu projeto.</small>
+  </div>
+
+  <script>
+    // --- Helpers ---
+    const $ = id => document.getElementById(id);
+
+    function onlyDigits(str){ return (str||'').toString().replace(/\D+/g,''); }
+
+    function allSameChars(str){ return /^([0-9])\1+$/.test(str); }
+
+    // --- CPF ---
+    function validateCPF(cpf){
+      cpf = onlyDigits(cpf);
+      if(cpf.length !== 11) return false;
+      if(allSameChars(cpf)) return false; // rejeita sequências como 00000000000
+
+      const nums = cpf.split('').map(d => parseInt(d,10));
+
+      // 1º dígito verificador
+      let sum = 0;
+      for(let i=0;i<9;i++) sum += nums[i] * (10 - i);
+      let rev = (sum * 10) % 11;
+      if(rev === 10) rev = 0;
+      if(rev !== nums[9]) return false;
+
+      // 2º dígito verificador
+      sum = 0;
+      for(let i=0;i<10;i++) sum += nums[i] * (11 - i);
+      rev = (sum * 10) % 11;
+      if(rev === 10) rev = 0;
+      return rev === nums[10];
+    }
+
+    function formatCPF(cpf){
+      cpf = onlyDigits(cpf);
+      if(cpf.length>11) cpf = cpf.slice(0,11);
+      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, (m,a,b,c,d)=>{
+        return a + (b?'.'+b:'') + (c?'.'+c:'') + (d?'-'+d:'');
+      });
+    }
+
+    // --- CNPJ ---
+    function validateCNPJ(cnpj){
+      cnpj = onlyDigits(cnpj);
+      if(cnpj.length !== 14) return false;
+      if(allSameChars(cnpj)) return false;
+
+      const nums = cnpj.split('').map(d => parseInt(d,10));
+
+      const calc = (slice, weights) => {
+        let sum = 0;
+        for(let i=0;i<slice.length;i++) sum += slice[i] * weights[i];
+        const r = sum % 11;
+        return r < 2 ? 0 : 11 - r;
+      };
+
+      const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+      const w2 = [6].concat(w1);
+
+      const d1 = calc(nums.slice(0,12), w1);
+      if(d1 !== nums[12]) return false;
+      const d2 = calc(nums.slice(0,13), w2);
+      return d2 === nums[13];
+    }
+
+    function formatCNPJ(cnpj){
+      cnpj = onlyDigits(cnpj);
+      if(cnpj.length>14) cnpj = cnpj.slice(0,14);
+      return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, (m,a,b,c,d,e)=>{
+        return a + (b?'.'+b:'') + (c?'.'+c:'') + (d?'/'+d:'') + (e?'-'+e:'');
+      });
+    }
+
+    // --- UI logic ---
+    const tabCPF = $('tab-cpf');
+    const tabCNPJ = $('tab-cnpj');
+    const input = $('id-input');
+    const labelInput = $('label-input');
+    const btnValidate = $('validate');
+    const btnClear = $('clear');
+    const result = $('result');
+
+    let mode = 'cpf'; // ou 'cnpj'
+
+    function setMode(m){
+      mode = m;
+      if(m === 'cpf'){
+        tabCPF.classList.add('active');
+        tabCNPJ.classList.remove('active');
+        labelInput.textContent = 'CPF';
+        input.placeholder = 'Digite o CPF (ex.: 123.456.789-09)';
+        input.maxLength = 14; // com pontuação
+        input.value = formatCPF(input.value);
+      } else {
+        tabCNPJ.classList.add('active');
+        tabCPF.classList.remove('active');
+        labelInput.textContent = 'CNPJ';
+        input.placeholder = 'Digite o CNPJ (ex.: 12.345.678/0001-95)';
+        input.maxLength = 18;
+        input.value = formatCNPJ(input.value);
+      }
+      result.style.display = 'none';
+    }
+
+    tabCPF.addEventListener('click', ()=>setMode('cpf'));
+    tabCNPJ.addEventListener('click', ()=>setMode('cnpj'));
+
+    // Formatação ao digitar
+    input.addEventListener('input', (e)=>{
+      const raw = onlyDigits(e.target.value);
+      if(mode === 'cpf') e.target.value = formatCPF(raw);
+      else e.target.value = formatCNPJ(raw);
+      result.style.display = 'none';
+    });
+
+    btnValidate.addEventListener('click', ()=>{
+      const value = input.value.trim();
+      if(!value){
+        showResult('Por favor preencha o campo.', 'invalid');
+        return;
+      }
+
+      if(mode === 'cpf'){
+        const ok = validateCPF(value);
+        showResult(ok ? 'CPF válido ✅' : 'CPF inválido ❌', ok ? 'valid' : 'invalid');
+      } else {
+        const ok = validateCNPJ(value);
+        showResult(ok ? 'CNPJ válido ✅' : 'CNPJ inválido ❌', ok ? 'valid' : 'invalid');
+      }
+    });
+
+    btnClear.addEventListener('click', ()=>{
+      input.value = '';
+      result.style.display = 'none';
+    });
+
+    function showResult(text, kind){
+      result.textContent = text;
+      result.className = 'result ' + (kind === 'valid' ? 'valid' : 'invalid');
+      result.style.display = 'block';
+    }
+
+    // Inicializa modo padrão
+    setMode('cpf');
+  </script>
+</body>
+</html>

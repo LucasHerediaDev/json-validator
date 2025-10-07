@@ -57,6 +57,9 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 3px solid #46d100; /* linha verde abaixo do logo */
 }
 /* Logo responsiva */
 .sidebar-logo {
@@ -606,11 +609,11 @@ button.secondary:hover { background: #dc2626; }
 
 /* TÍTULO MAIS MODERNO */
 .title-group h1 {
-  font-family: 'Poppins', 'Inter', Arial, sans-serif;
-  font-size: 1.7rem;
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-size: 1.6rem;
   margin: 0;
-  letter-spacing: -0.5px;
-  font-weight: 800;
+  letter-spacing: -0.2px;
+  font-weight: 700; /* mais grosso */
   color: #46d100 !important;
   background: none !important;
   -webkit-background-clip: initial !important;
@@ -663,9 +666,9 @@ button.secondary:hover { background: #dc2626; }
   }
 }
 
-/* Doc-callout dentro do grid de resultados: ocupa toda a largura (1 até -1) */
+/* Doc-callout dentro do grid de resultados: ocupa a coluna da direita */
 .result-panels .doc-callout {
-  grid-column: 1 / -1; /* span across both columns */
+  grid-column: 1 / -1; /* ocupa toda a largura do grid */
   align-self: stretch;
   width: 100%;
   margin: 0; /* alinha com os painéis */
@@ -674,7 +677,7 @@ button.secondary:hover { background: #dc2626; }
 }
 @media (max-width: 800px) {
   .result-panels .doc-callout {
-    grid-column: 1 / -1; /* já é 1 coluna, mantém full width */
+    grid-column: 1 / -1; /* mantém largura total em telas pequenas */
     margin-top: 8px;
   }
 }

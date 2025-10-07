@@ -139,19 +139,23 @@ function validarBody(body) {
     erros.push('❌ Campo "devedorDocumento" é obrigatório.');
   } else if (typeof body.devedorDocumento !== 'string') {
     erros.push('❌ Campo "devedorDocumento" deve ser string.');
-  } else if (!/^\d{11}$/.test(body.devedorDocumento) && !/^\d{14}$/.test(body.devedorDocumento)) {
-    erros.push('❌ Campo "devedorDocumento" deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).');
-  } else if (/^\d{11}$/.test(body.devedorDocumento)) {
-    if (!isCPF(body.devedorDocumento)) {
-      erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
-    } else {
-      validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
-    }
-  } else if (/^\d{14}$/.test(body.devedorDocumento)) {
-    if (!isCNPJ(body.devedorDocumento)) {
-      erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
-    } else {
-      validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
+  } else {
+    // Normaliza para apenas dígitos para aceitar entradas com pontuação
+    const doc = String(body.devedorDocumento).replace(/\D+/g, '');
+    if (!/^\d{11}$/.test(doc) && !/^\d{14}$/.test(doc)) {
+      erros.push('❌ Campo "devedorDocumento" deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).');
+    } else if (/^\d{11}$/.test(doc)) {
+      if (!isCPF(doc)) {
+        erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
+      } else {
+        validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
+      }
+    } else if (/^\d{14}$/.test(doc)) {
+      if (!isCNPJ(doc)) {
+        erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
+      } else {
+        validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
+      }
     }
   }
 
