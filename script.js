@@ -513,7 +513,9 @@ function formatJsonInTextarea() {
     if (resultValid) resultValid.innerHTML = '';
     if (resultErrors) {
       resultErrors.innerHTML = '';
-      resultErrors.appendChild(renderLine('error', '❌ JSON inválido. Corrija a sintaxe e tente novamente.'));
+      const msg = '❌ JSON inválido. Corrija a sintaxe e tente novamente.';
+      resultErrors.appendChild(renderLine('error', msg));
+      try { if (typeof console !== 'undefined') console.error(msg); } catch(_) {}
     }
     if (countErros) countErros.textContent = '1';
     if (countValidos) countValidos.textContent = '0';
@@ -548,7 +550,9 @@ validateBtn.addEventListener('click', () => {
     input.value = JSON.stringify(json, null, 2);
     syncHighlight();
   } catch (e) {
-    resultErrors.appendChild(renderLine('error', '❌ JSON inválido.'));
+    const msg = '❌ JSON inválido.';
+    resultErrors.appendChild(renderLine('error', msg));
+    try { if (typeof console !== 'undefined') console.error(msg); } catch(_) {}
     countErros.textContent = '1';
     return;
   }
