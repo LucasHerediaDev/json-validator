@@ -45,8 +45,13 @@ function isCNPJ(cnpj) {
   resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
   return resultado === Number(digitos.charAt(1));
 }
+// MCCs permitidos (códigos de 4 dígitos)
+const ALLOWED_MCCS = new Set([
+  '0742','0763','0780','1520','1711','1731','1740','1750','1761','1771','1799','2741','2791','2842','4111','4119','4121','4214','4225','4457','4511','4582','4722','4784','4789','4812','4814','4816','4821','4829','4899','4900','5013','5021','5039','5044','5045','5046','5047','5051','5065','5072','5074','5085','5094','5099','5111','5122','5131','5137','5139','5169','5172','5192','5193','5198','5199','5211','5231','5251','5261','5300','5309','5311','5331','5399','5411','5422','5441','5451','5462','5499','5511','5521','5531','5532','5533','5541','5542','5551','5571','5592','5598','5611','5621','5631','5641','5651','5655','5661','5681','5691','5697','5698','5699','5712','5713','5714','5718','5719','5722','5732','5733','5734','5735','5811','5812','5813','5814','5912','5921','5931','5932','5935','5937','5940','5941','5942','5943','5944','5945','5946','5947','5948','5949','5950','5960','5961','5962','5963','5964','5965','5966','5967','5968','5969','5970','5971','5972','5973','5975','5976','5977','5978','5983','5992','5993','5994','5995','5996','5997','5998','5999','6010','6011','6012','6051','6211','6300','7311','7321','7333','7338','7342','7349','7361','7372','7379','7392','7393','7394','7395','7911','7922','7929','7932','7933','7941','7991','7994','7995','7996','7997','7998','7999','8011','8021','8031','8043','8049','8050','8062','8071','8099','8111','8211','8220','8244','8249','8299','8351','8398','8641','8651','8661','8675','8699','8734','8911','8931','8999','9211','9222','9223','9311','9399','9402','9405','9700','9950'
+]);
 function isCodigoCategoria(str) {
-  return /^\d{4}$/.test(str);
+  const value = String(str).trim();
+  return /^\d{4}$/.test(value) && ALLOWED_MCCS.has(value);
 }
 
 function validarBody(body) {
@@ -96,13 +101,25 @@ function validarBody(body) {
     validos.push('✅ Campo "chavePix" válido.');
   }
 
-  // codigoCategoria (MCC - 4 dígitos)
-  if (!body.codigoCategoria) {
+  // Regra: chaveIdempotencia deve ser diferente de chavePix
+  if (typeof body.chaveIdempotencia === 'string' && typeof body.chavePix === 'string') {
+    if (body.chaveIdempotencia.toLowerCase() === body.chavePix.toLowerCase()) {
+      erros.push('❌ "chaveIdempotencia" deve ser diferente de "chavePix".');
+    }
+  }
+
+  // codigoCategoria (MCC - 4 dígitos, deve estar na lista permitida)
+  if (body.codigoCategoria === undefined || body.codigoCategoria === null || body.codigoCategoria === '') {
     erros.push('❌ Campo "codigoCategoria" é obrigatório.');
-  } else if (typeof body.codigoCategoria !== 'string' || !isCodigoCategoria(body.codigoCategoria)) {
-    erros.push('❌ Campo "codigoCategoria" deve ser string com 4 dígitos (MCC).');
   } else {
-    validos.push('✅ Campo "codigoCategoria" válido.');
+    const mcc = String(body.codigoCategoria).trim();
+    if (!/^\d{4}$/.test(mcc)) {
+      erros.push('❌ Campo "codigoCategoria" deve conter 4 dígitos (MCC).');
+    } else if (!isCodigoCategoria(mcc)) {
+      erros.push('❌ Campo "codigoCategoria" deve ser um MCC válido.');
+    } else {
+      validos.push(`✅ Campo "codigoCategoria" (MCC ${mcc}) permitido.`);
+    }
   }
 
   // recebedorNome
