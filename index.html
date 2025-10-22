@@ -11,7 +11,8 @@
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <img src="public/microcash-logo.png" alt="Microcash" class="sidebar-logo" />
+        <img src="public/a55.png" alt="A55" class="dashboard-logo" />
+        <img src="public/microcash-logo.png" alt="Microcash" class="dashboard-logo" />
       </div>
       <nav class="menu">
         <a href="#" class="menu-item active" data-i18n="nav_validator">Validador</a>
@@ -22,13 +23,13 @@
     <div class="main">
       <header class="topbar">
         <div class="title-group">
-          <h1 data-i18n="app_title">Validador de Payload Microcash</h1>
+          <h1 data-i18n="app_title">Validador de Payload</h1>
           <p class="subtitle" data-i18n="app_subtitle">Ferramenta oficial para validação de JSONs de integração Pix, seguindo o padrão Microcash.</p>
         </div>
         <div class="actions">
-          <a class="doc-link" href="https://docs.microcashif.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer" data-i18n="docs">Docs</a>
+          <a class="doc-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer" data-i18n="docsa55">Doc A55</a>
+          <a class="doc-link" href="https://docs.a55scd.com.br/reference/introduction-1" target="_blank" rel="noopener noreferrer" data-i18n="docsmicro">Doc Micro</a>
           <button id="lang-toggle" class="icon-btn" aria-label="Switch language">PT</button>
-          <button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">🌙</button>
         </div>
       </header>
 
@@ -50,8 +51,8 @@
           
 
           <div class="buttons">
-            <button id="validate-btn" data-i18n="validate">Validar JSON</button>
-            <button id="format-btn" data-i18n="format">Formatar</button>
+            <button id="validate-btn" class="btn-green" data-i18n="validate">Validar JSON</button>
+            <button id="format-btn" class="btn-green" data-i18n="format">Formatar</button>
             <button id="clear-btn" class="secondary" data-i18n="clear">Limpar</button>
           </div>
 
@@ -72,6 +73,11 @@
             </div>
             <div class="doc-callout">
               <div class="doc-callout-title" data-i18n="doc_callout_title">Documentação oficial Microcash</div>
+              <div class="doc-callout-text" data-i18n="doc_callout_text">Consulte o schema e regras completas do endpoint de Pix dinâmico. </div>
+              <a class="doc-callout-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer" data-i18n="doc_callout_link">Abrir guia do endpoint →</a>
+            </div>
+            <div class="doc-callout">
+              <div class="doc-callout-title" data-i18n="doc_callout_title2">Documentação oficial A55</div>
               <div class="doc-callout-text" data-i18n="doc_callout_text">Consulte o schema e regras completas do endpoint de Pix dinâmico. </div>
               <a class="doc-callout-link" href="https://docs.microcashif.com.br/reference/post_integracao-pix-qrcodes-dinamicos-imediatos-1" target="_blank" rel="noopener noreferrer" data-i18n="doc_callout_link">Abrir guia do endpoint →</a>
             </div>

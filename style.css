@@ -59,18 +59,39 @@ body {
   gap: 10px;
   padding-bottom: 10px;
   margin-bottom: 12px;
-  border-bottom: 3px solid #46d100; /* linha verde abaixo do logo */
+  border-bottom: 3px solid #979797; /* linha verde abaixo do logo */
+}
+/* Container das duas logos lado a lado responsivas */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  overflow: hidden;
 }
 /* Logo responsiva */
-.sidebar-logo {
-  display: block;
-  height: 28px;
-  max-width: 100%;
+.dashboard-logo {
+  max-height: 30px;
   width: auto;
+  max-width: 100%;
   object-fit: contain;
 }
-@media (min-width: 1200px) { .sidebar-logo { height: 34px; } }
-@media (max-width: 900px) { .sidebar-logo { height: 24px; } }
+@media (max-width: 600px) {
+  .dashboard-logo {
+    max-height: 35px;
+  }
+  .logo-container {
+    gap: 8px;
+  }
+}
+
+@media (min-width: 1200px) { 
+  .sidebar-logo { height: 34px; } 
+}
+@media (max-width: 900px) { 
+  .sidebar-logo { height: 24px; } 
+}
 
 .sidebar-header .brand {
   font-weight: 800;
@@ -134,7 +155,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  border-top: 3px solid var(--secondary); /* barra de acento inspirada na doc */
+  border-top: 3px solid #979797;
 }
 .title-group {
   display: flex;
@@ -291,6 +312,10 @@ button.secondary:hover { background: #dc2626; }
   font-size: 1.3em;
   margin-top: 1px;
   display: inline-block;
+}
+.btn-green{
+  background-color: #15cf25;
+  color:#ffffff;
 }
 .result-error::before {
   content: '❌';
@@ -470,10 +495,10 @@ button.secondary:hover { background: #dc2626; }
   overflow: hidden; /* impede scroll próprio do <pre> */
 }
 /* Tokens de sintaxe */
-.tok-key { color: #60a5fa; }       /* azul claro */
-.tok-string { color: #a7f3d0; }    /* verde água */
-.tok-number { color: #facc15; }    /* amarelo */
-.tok-bool { color: #f472b6; }      /* rosa */
+.tok-key { color: #60a5fa; }        /* azul claro */
+.tok-string { color: #a7f3d0; }     /* verde água */
+.tok-number { color: #facc15; }     /* amarelo */
+.tok-bool { color: #f472b6; }       /* rosa */
 .tok-null { color: #94a3b8; font-style: italic; }
 .tok-punct { color: #e5e7eb; }
 .editor-toolbar {
@@ -614,7 +639,7 @@ button.secondary:hover { background: #dc2626; }
   margin: 0;
   letter-spacing: -0.2px;
   font-weight: 700; /* mais grosso */
-  color: #46d100 !important;
+  color: #ffffff !important;
   background: none !important;
   -webkit-background-clip: initial !important;
   background-clip: initial !important;

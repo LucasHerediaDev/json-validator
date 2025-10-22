@@ -5,11 +5,12 @@
 
   const dictionaries = {
     pt: {
-      app_title: 'Validador de Payload Microcash',
-      app_subtitle: 'Ferramenta oficial para validação de JSONs de integração Pix, seguindo o padrão Microcash.',
+      app_title: 'Validador de Payload',
+      app_subtitle: 'Ferramenta oficial para validação de JSONs de integração Pix',
       nav_validator: 'Validador',
       nav_example: 'Exemplo',
-      docs: 'Docs',
+      docsa55: 'Doc A55',
+      docsmicro:'Doc Micro',
       editor_title: 'JSON do Request Body',
       copy: 'Copiar',
       copied: 'Copiado!',
@@ -21,10 +22,11 @@
       errors: 'Erros',
       valids: 'Válidos',
       doc_callout_title: 'Documentação oficial Microcash',
+      doc_callout_title2:'Documentação oficial A55',
       doc_callout_text: 'Consulte o schema e regras completas do endpoint de Pix dinâmico.',
       doc_callout_link: 'Abrir guia do endpoint →',
       // Example page
-      example_title: 'Exemplo de Payload Microcash',
+      example_title: 'Exemplo de Payload Microcash & A55',
       example_subtitle: 'Modelo de JSON com explicação de campos para integração Pix.',
       example_json_title: 'JSON de Exemplo',
       example_copy: 'Copiar',
@@ -60,11 +62,12 @@
       field_tid_desc: 'Identificador da transação.',
     },
     en: {
-      app_title: 'Microcash Payload Validator',
-      app_subtitle: 'Official tool to validate Pix integration JSONs following Microcash standard.',
+      app_title: 'Microcash & A55 Payload',
+      app_subtitle: 'Official tool to validate Pix integration JSONs',
       nav_validator: 'Validator',
       nav_example: 'Example',
-      docs: 'Docs',
+      docsa55: 'Doc A55',
+      docsmicro:'Doc Micro',
       editor_title: 'Request Body JSON',
       copy: 'Copy',
       copied: 'Copied!',
@@ -79,7 +82,7 @@
       doc_callout_text: 'See the full schema and rules for the dynamic Pix endpoint.',
       doc_callout_link: 'Open endpoint guide →',
       // Example page
-      example_title: 'Microcash Payload Example',
+      example_title: 'Microcash & A55 Payload Example',
       example_subtitle: 'JSON template with field explanation for Pix integration.',
       example_json_title: 'Example JSON',
       example_copy: 'Copy',
