@@ -72,7 +72,8 @@ function isCodigoCategoria(str) {
 function validarBody(body) {
   const erros = [];
   const validos = [];
-  
+  const usedIdempotencyKeys = new Set(); // Para simular a unicidade por sessão
+
   // Campos permitidos pela documentação (extras não devem ser enviados)
   const allowedKeys = [
     'chaveIdempotencia',
@@ -94,100 +95,251 @@ function validarBody(body) {
   ];
   Object.keys(body || {}).forEach((key) => {
     if (!allowedKeys.includes(key)) {
-      erros.push(`❌ Campo "${key}" não é permitido pela documentação.`);
+      erros.push(window.i18n.t('error_field_not_allowed', { key }));
     }
   });
 
   // chaveIdempotencia
   if (!body.chaveIdempotencia) {
-    erros.push('❌ Campo "chaveIdempotencia" é obrigatório.');
+    erros.push(window.i18n.t('error_chaveIdempotencia_required'));
   } else if (typeof body.chaveIdempotencia !== 'string' || !isUUID(body.chaveIdempotencia)) {
-    erros.push('❌ Campo "chaveIdempotencia" deve ser um UUID válido.');
+    erros.push(window.i18n.t('error_chaveIdempotencia_invalid_uuid'));
+  } else if (usedIdempotencyKeys.has(body.chaveIdempotencia)) {
+    erros.push(window.i18n.t('error_chaveIdempotencia_duplicate'));
   } else {
-    validos.push('✅ Campo "chaveIdempotencia" válido.');
+    usedIdempotencyKeys.add(body.chaveIdempotencia);
+    validos.push(window.i18n.t('valid_chaveIdempotencia'));
   }
 
   // chavePix
   if (!body.chavePix) {
-    erros.push('❌ Campo "chavePix" é obrigatório.');
-  } else if (typeof body.chavePix !== 'string' || !isUUID(body.chavePix)) {
-    erros.push('❌ Campo "chavePix" deve ser um UUID válido.');
+    erros.push(window.i18n.t('error_chavePix_required'));
+  } else if (typeof body.chavePix !== 'string') {
+    erros.push(window.i18n.t('error_chavePix_not_string'));
+  } else if (body.chavePix.toLowerCase() === body.chaveIdempotencia.toLowerCase()) {
+    erros.push(window.i18n.t('error_chaveIdempotencia_equals_chavePix'));
   } else {
-    validos.push('✅ Campo "chavePix" válido.');
+    // Simulação de validação de chave Pix com a conta recebedora
+    // Em um ambiente real, você faria uma consulta a um serviço para verificar isso.
+    if (body.chavePix === 'chave-pix-nao-corresponde') { // Exemplo de chave que não corresponde
+      erros.push(window.i18n.t('error_chavePix_mismatch'));
+    } else {
+      validos.push(window.i18n.t('valid_chavePix'));
+    }
   }
 
   // Regra: chaveIdempotencia deve ser diferente de chavePix
   if (typeof body.chaveIdempotencia === 'string' && typeof body.chavePix === 'string') {
     if (body.chaveIdempotencia.toLowerCase() === body.chavePix.toLowerCase()) {
-      erros.push('❌ "chaveIdempotencia" deve ser diferente de "chavePix".');
+      erros.push(window.i18n.t('error_chaveIdempotencia_equals_chavePix'));
     }
   }
 
   // codigoCategoria (MCC - deve ser string de 4 dígitos e estar na lista permitida)
   if (body.codigoCategoria === undefined || body.codigoCategoria === null || body.codigoCategoria === '') {
-    erros.push('❌ Campo "codigoCategoria" é obrigatório.');
+    erros.push(window.i18n.t('error_codigoCategoria_required'));
   } else if (typeof body.codigoCategoria !== 'string') {
-    erros.push('❌ Campo "codigoCategoria" deve ser uma string.');
+    erros.push(window.i18n.t('error_codigoCategoria_not_string'));
   } else {
     const mcc = body.codigoCategoria.trim();
     if (!/^\d{4}$/.test(mcc)) {
-      erros.push('❌ Campo "codigoCategoria" deve conter 4 dígitos (MCC).');
+      erros.push(window.i18n.t('error_codigoCategoria_invalid_format'));
     } else if (!isCodigoCategoria(mcc)) {
-      erros.push('❌ Campo "codigoCategoria" deve ser um MCC válido.');
+      erros.push(window.i18n.t('error_codigoCategoria_invalid_mcc'));
     } else {
-      validos.push(`✅ Campo "codigoCategoria" (MCC ${mcc}) permitido.`);
+      validos.push(window.i18n.t('valid_codigoCategoria', { mcc }));
     }
   }
 
   // recebedorNome
   if (!body.recebedorNome) {
-    erros.push('❌ Campo "recebedorNome" é obrigatório.');
+    erros.push(window.i18n.t('error_recebedorNome_required'));
   } else if (typeof body.recebedorNome !== 'string' || body.recebedorNome.trim().length < 2) {
-    erros.push('❌ Campo "recebedorNome" deve ter no mínimo 2 caracteres.');
+    erros.push(window.i18n.t('error_recebedorNome_min_length'));
   } else {
-    const nome = body.recebedorNome.trim();
+    let nome = body.recebedorNome.trim();
+    nome = nome.replace(/\s+/g, ' '); // Normaliza múltiplos espaços para um único
     if (hasDiacritics(nome)) {
-      erros.push('❌ Campo "recebedorNome" não deve conter acentos.');
+      erros.push(window.i18n.t('error_recebedorNome_has_diacritics'));
+    } else if (nome.length > 25) {
+      erros.push(window.i18n.t('error_recebedorNome_max_length'));
     } else {
-    if (nome.length > 25) {
-      erros.push('❌ Campo "recebedorNome" não pode exceder 25 caracteres.');
-    } else {
-      validos.push('✅ Campo "recebedorNome" válido.');
-    }
+      validos.push(window.i18n.t('valid_recebedorNome'));
     }
   }
 
   // solicitacaoPagador (opcional - valida somente se existir, aceita null)
   if (Object.prototype.hasOwnProperty.call(body, 'solicitacaoPagador')) {
     if (body.solicitacaoPagador === null) {
-      validos.push('✅ Campo "solicitacaoPagador" presente como null (aceito).');
+      validos.push(window.i18n.t('valid_solicitacaoPagador_null'));
+    } else if (typeof body.solicitacaoPagador === 'string') {
+      validos.push(window.i18n.t('valid_solicitacaoPagador_string'));
+    } else {
+      erros.push(window.i18n.t('error_solicitacaoPagador_invalid_type'));
+    }
+  }
+
+  // devedorDocumento (CPF ou CNPJ válido) - aceitar apenas dígitos (sem pontuação)
+  if (!body.devedorDocumento) {
+    erros.push(window.i18n.t('error_devedorDocumento_required'));
+  } else if (typeof body.devedorDocumento !== 'string') {
+    erros.push(window.i18n.t('error_devedorDocumento_not_string'));
+  } else if (!/^\d{11}$/.test(body.devedorDocumento) && !/^\d{14}$/.test(body.devedorDocumento)) {
+    erros.push(window.i18n.t('error_devedorDocumento_invalid_format'));
+  } else if (/^\d{11}$/.test(body.devedorDocumento)) {
+    if (!isCPF(body.devedorDocumento)) {
+      erros.push(window.i18n.t('error_devedorDocumento_invalid_cpf'));
+    } else {
+      validos.push(window.i18n.t('valid_devedorDocumento_cpf'));
+    }
+  } else if (/^\d{14}$/.test(body.devedorDocumento)) {
+    if (!isCNPJ(body.devedorDocumento)) {
+      erros.push(window.i18n.t('error_devedorDocumento_invalid_cnpj'));
+    } else {
+      validos.push(window.i18n.t('valid_devedorDocumento_cnpj'));
+    }
+  }
+
+  // devedorNome
+  if (!body.devedorNome) {
+    erros.push(window.i18n.t('error_devedorNome_required'));
+  } else if (typeof body.devedorNome !== 'string' || body.devedorNome.trim().length < 2) {
+    erros.push(window.i18n.t('error_devedorNome_min_length'));
+  } else {
+    let nomeDev = body.devedorNome.trim();
+    nomeDev = nomeDev.replace(/\s+/g, ' '); // Normaliza múltiplos espaços para um único
+    if (hasDiacritics(nomeDev)) {
+      erros.push(window.i18n.t('error_devedorNome_has_diacritics'));
+    } else {
+      validos.push(window.i18n.t('valid_devedorNome'));
+    }
+  }
+
+  // cidade
+  if (!body.cidade) {
+    erros.push(window.i18n.t('error_cidade_required'));
+  } else if (typeof body.cidade !== 'string' || body.cidade.trim().length < 2) {
+    erros.push(window.i18n.t('error_cidade_min_length'));
+  } else {
+    let cidadeVal = body.cidade.trim();
+    cidadeVal = cidadeVal.replace(/\s+/g, ''); // Remove todos os espaços
+    if (hasDiacritics(cidadeVal)) {
+      erros.push(window.i18n.t('error_cidade_has_diacritics'));
+    } else if (/\s/.test(cidadeVal)) {
+      erros.push(window.i18n.t('error_cidade_has_spaces'));
+    } else {
+      validos.push(window.i18n.t('valid_cidade'));
+      if (cidadeVal.length > 20) {
+        validos.push(window.i18n.t('warning_cidade_max_length'));
+      }
+    }
+  }
+
+  // cep (opcional - valida somente se existir, aceita null; sem validações rígidas)
+  if (Object.prototype.hasOwnProperty.call(body, 'cep')) {
+    if (body.cep === null) {
+      validos.push(window.i18n.t('valid_cep_null'));
+    } else {
+      validos.push(window.i18n.t('valid_cep_informed'));
+    }
+  }
+
+  // valorOriginal
+  if (body.valorOriginal === undefined) {
+    erros.push(window.i18n.t('error_valorOriginal_required'));
+  } else if (typeof body.valorOriginal !== 'number' || Number.isNaN(body.valorOriginal)) {
+    erros.push(window.i18n.t('error_valorOriginal_not_number'));
+  } else {
+    const v = body.valorOriginal;
+    // Permitir no máximo 2 casas decimais (após o ponto)
+    if (!Number.isFinite(v)) {
+      erros.push(window.i18n.t('error_valorOriginal_invalid'));
+    } else if (getDecimalPlaces(v) > 2) {
+      erros.push(window.i18n.t('error_valorOriginal_too_many_decimals'));
+    } else {
+      validos.push(window.i18n.t('valid_valorOriginal'));
+    }
+  }
+
+  // modalidadeAlteracao (inteiro 0 ou 1)
+  if (body.modalidadeAlteracao === undefined) {
+    erros.push(window.i18n.t('error_modalidadeAlteracao_required'));
+  } else if (typeof body.modalidadeAlteracao !== 'number' || !Number.isInteger(body.modalidadeAlteracao) || ![0,1].includes(body.modalidadeAlteracao)) {
+    erros.push(window.i18n.t('error_modalidadeAlteracao_invalid'));
+  } else {
+    validos.push(window.i18n.t('valid_modalidadeAlteracao'));
+  }
+
+  // expiracaoEmSegundos (inteiro entre 60 e 86400)
+  if (body.expiracaoEmSegundos === undefined) {
+    erros.push(window.i18n.t('error_expiracaoEmSegundos_required'));
+  } else if (typeof body.expiracaoEmSegundos !== 'number' || !Number.isInteger(body.expiracaoEmSegundos) || body.expiracaoEmSegundos < 60 || body.expiracaoEmSegundos > 86400) {
+    erros.push(window.i18n.t('error_expiracaoEmSegundos_invalid'));
+  } else {
+    validos.push(window.i18n.t('valid_expiracaoEmSegundos'));
+  }
+
+  // dadosAdicionais (opcional) → deve ser objeto JSON ou null quando enviado
+  if (Object.prototype.hasOwnProperty.call(body, 'dadosAdicionais')) {
+    const da = body.dadosAdicionais;
+    if (da === null) {
+      validos.push(window.i18n.t('valid_dadosAdicionais_null'));
+    } else if (typeof da === 'object' && !Array.isArray(da)) {
+      validos.push(window.i18n.t('valid_dadosAdicionais_object'));
+    } else {
+      erros.push(window.i18n.t('error_dadosAdicionais_invalid_type'));
+    }
+  }
+
+  // reutilizavel
+  if (body.reutilizavel === undefined) {
+    erros.push(window.i18n.t('error_reutilizavel_required'));
+  } else if (typeof body.reutilizavel !== 'boolean') {
+    erros.push(window.i18n.t('error_reutilizavel_not_boolean'));
+  } else {
+    validos.push(window.i18n.t('valid_reutilizavel'));
+  }
+
+  // tid (string, mínimo 6 caracteres conforme exemplo oficial)
+  if (!body.tid) {
+    erros.push(window.i18n.t('error_tid_required'));
+  } else if (typeof body.tid !== 'string' || body.tid.length < 6) {
+    erros.push(window.i18n.t('error_tid_min_length'));
+  } else {
+    validos.push(window.i18n.t('valid_tid'));
+  }
+
+  // solicitacaoPagador (opcional - valida somente se existir, aceita null)
+  if (Object.prototype.hasOwnProperty.call(body, 'solicitacaoPagador')) {
+    if (body.solicitacaoPagador === null) {
+      validos.push(window.i18n.t('valid_solicitacaoPagador_null'));
     } else {
       // Não aplicar validações rígidas; apenas verificar tipo básico se informado
       if (typeof body.solicitacaoPagador === 'string') {
-        validos.push('✅ Campo "solicitacaoPagador" válido.');
+        validos.push(window.i18n.t('valid_solicitacaoPagador_string'));
       } else {
         // Não falhar de forma rígida: mensagem mais branda
-        erros.push('❌ Campo "solicitacaoPagador" deve ser string ou null quando enviado.');
+        erros.push(window.i18n.t('error_solicitacaoPagador_invalid_type'));
       }
     }
   }
 
   // devedorDocumento (CPF ou CNPJ válido) - aceitar apenas dígitos (sem pontuação)
   if (!body.devedorDocumento) {
-    erros.push('❌ Campo "devedorDocumento" é obrigatório.');
+    erros.push(window.i18n.t('error_devedorDocumento_required'));
   } else if (typeof body.devedorDocumento !== 'string') {
-    erros.push('❌ Campo "devedorDocumento" deve ser string.');
+    erros.push(window.i18n.t('error_devedorDocumento_not_string'));
   } else if (!/^\d{11}$/.test(body.devedorDocumento) && !/^\d{14}$/.test(body.devedorDocumento)) {
-    erros.push('❌ Campo "devedorDocumento" deve conter apenas dígitos: 11 (CPF) ou 14 (CNPJ).');
+    erros.push(window.i18n.t('error_devedorDocumento_invalid_format'));
   } else if (/^\d{11}$/.test(body.devedorDocumento)) {
     if (!isCPF(body.devedorDocumento)) {
-      erros.push('❌ Campo "devedorDocumento" deve ser um CPF válido.');
+      erros.push(window.i18n.t('error_devedorDocumento_invalid_cpf'));
     } else {
       validos.push('✅ Campo "devedorDocumento" (CPF) válido.');
     }
   } else if (/^\d{14}$/.test(body.devedorDocumento)) {
     if (!isCNPJ(body.devedorDocumento)) {
-      erros.push('❌ Campo "devedorDocumento" deve ser um CNPJ válido.');
+      erros.push(window.i18n.t('error_devedorDocumento_invalid_cnpj'));
     } else {
       validos.push('✅ Campo "devedorDocumento" (CNPJ) válido.');
     }
@@ -195,13 +347,14 @@ function validarBody(body) {
 
   // devedorNome
   if (!body.devedorNome) {
-    erros.push('❌ Campo "devedorNome" é obrigatório.');
+    erros.push(window.i18n.t('error_devedorNome_required'));
   } else if (typeof body.devedorNome !== 'string' || body.devedorNome.trim().length < 2) {
-    erros.push('❌ Campo "devedorNome" deve ter no mínimo 2 caracteres.');
+    erros.push(window.i18n.t('error_devedorNome_min_length'));
   } else {
-    const nomeDev = body.devedorNome.trim();
+    let nomeDev = body.devedorNome.trim();
+    nomeDev = nomeDev.replace(/\s+/g, ' '); // Normaliza múltiplos espaços para um único
     if (hasDiacritics(nomeDev)) {
-      erros.push('❌ Campo "devedorNome" não deve conter acentos.');
+      erros.push(window.i18n.t('error_devedorNome_has_diacritics'));
     } else {
       validos.push('✅ Campo "devedorNome" válido.');
     }
@@ -209,19 +362,20 @@ function validarBody(body) {
 
   // cidade
   if (!body.cidade) {
-    erros.push('❌ Campo "cidade" é obrigatório.');
+    erros.push(window.i18n.t('error_cidade_required'));
   } else if (typeof body.cidade !== 'string' || body.cidade.trim().length < 2) {
-    erros.push('❌ Campo "cidade" deve ter no mínimo 2 caracteres.');
+    erros.push(window.i18n.t('error_cidade_min_length'));
   } else {
-    const cidadeVal = body.cidade.trim();
+    let cidadeVal = body.cidade.trim();
+    cidadeVal = cidadeVal.replace(/\s+/g, ''); // Remove todos os espaços
     if (hasDiacritics(cidadeVal)) {
-      erros.push('❌ Campo "cidade" não deve conter acentos.');
+      erros.push(window.i18n.t('error_cidade_has_diacritics'));
     } else if (/\s/.test(cidadeVal)) {
-      erros.push('❌ Campo "cidade" não deve conter espaços.');
+      erros.push(window.i18n.t('error_cidade_has_spaces'));
     } else {
       validos.push('✅ Campo "cidade" válido.');
       if (cidadeVal.length > 20) {
-        validos.push('⚠️ Campo "cidade" excede 20 caracteres (recomendação).');
+        validos.push(window.i18n.t('warning_cidade_max_length'));
       }
     }
   }
@@ -237,16 +391,16 @@ function validarBody(body) {
 
   // valorOriginal
   if (body.valorOriginal === undefined) {
-    erros.push('❌ Campo "valorOriginal" é obrigatório.');
+    erros.push(window.i18n.t('error_valorOriginal_required'));
   } else if (typeof body.valorOriginal !== 'number' || Number.isNaN(body.valorOriginal)) {
-    erros.push('❌ Campo "valorOriginal" deve ser numérico (sem aspas).');
+    erros.push(window.i18n.t('error_valorOriginal_not_number'));
   } else {
     const v = body.valorOriginal;
     // Permitir no máximo 2 casas decimais (após o ponto)
     if (!Number.isFinite(v)) {
-      erros.push('❌ Campo "valorOriginal" inválido.');
+      erros.push(window.i18n.t('error_valorOriginal_invalid'));
     } else if (getDecimalPlaces(v) > 2) {
-      erros.push('❌ Campo "valorOriginal" deve ter no máximo 2 casas decimais após o ponto.');
+      erros.push(window.i18n.t('error_valorOriginal_too_many_decimals'));
     } else {
       validos.push('✅ Campo "valorOriginal" válido.');
     }
@@ -254,18 +408,18 @@ function validarBody(body) {
 
   // modalidadeAlteracao (inteiro 0 ou 1)
   if (body.modalidadeAlteracao === undefined) {
-    erros.push('❌ Campo "modalidadeAlteracao" é obrigatório.');
+    erros.push(window.i18n.t('error_modalidadeAlteracao_required'));
   } else if (typeof body.modalidadeAlteracao !== 'number' || !Number.isInteger(body.modalidadeAlteracao) || ![0,1].includes(body.modalidadeAlteracao)) {
-    erros.push('❌ Campo "modalidadeAlteracao" deve ser inteiro (0 ou 1).');
+    erros.push(window.i18n.t('error_modalidadeAlteracao_invalid'));
   } else {
     validos.push('✅ Campo "modalidadeAlteracao" válido.');
   }
 
   // expiracaoEmSegundos (inteiro entre 60 e 86400)
   if (body.expiracaoEmSegundos === undefined) {
-    erros.push('❌ Campo "expiracaoEmSegundos" é obrigatório.');
+    erros.push(window.i18n.t('error_expiracaoEmSegundos_required'));
   } else if (typeof body.expiracaoEmSegundos !== 'number' || !Number.isInteger(body.expiracaoEmSegundos) || body.expiracaoEmSegundos < 60 || body.expiracaoEmSegundos > 86400) {
-    erros.push('❌ Campo "expiracaoEmSegundos" deve ser um inteiro entre 60 e 86400.');
+    erros.push(window.i18n.t('error_expiracaoEmSegundos_invalid'));
   } else {
     validos.push('✅ Campo "expiracaoEmSegundos" válido.');
   }
@@ -278,24 +432,24 @@ function validarBody(body) {
     } else if (typeof da === 'object' && !Array.isArray(da)) {
       validos.push('✅ Campo "dadosAdicionais" (objeto JSON) válido.');
     } else {
-      erros.push('❌ Campo "dadosAdicionais" deve ser um objeto (JSON) ou null quando enviado.');
+      erros.push(window.i18n.t('error_dadosAdicionais_invalid_type'));
     }
   }
 
   // reutilizavel
   if (body.reutilizavel === undefined) {
-    erros.push('❌ Campo "reutilizavel" é obrigatório.');
+    erros.push(window.i18n.t('error_reutilizavel_required'));
   } else if (typeof body.reutilizavel !== 'boolean') {
-    erros.push('❌ Campo "reutilizavel" deve ser booleano.');
+    erros.push(window.i18n.t('error_reutilizavel_not_boolean'));
   } else {
     validos.push('✅ Campo "reutilizavel" válido.');
   }
 
   // tid (string, mínimo 6 caracteres conforme exemplo oficial)
   if (!body.tid) {
-    erros.push('❌ Campo "tid" é obrigatório.');
+    erros.push(window.i18n.t('error_tid_required'));
   } else if (typeof body.tid !== 'string' || body.tid.length < 6) {
-    erros.push('❌ Campo "tid" deve ter no mínimo 6 caracteres.');
+    erros.push(window.i18n.t('error_tid_min_length'));
   } else {
     validos.push('✅ Campo "tid" válido.');
   }
@@ -319,7 +473,7 @@ const countValidos = document.getElementById('count-validos');
 
 function renderLine(type, text) {
   // Padronizar: sem emoji no texto, apenas ícone à esquerda
-  let title = type === 'error' ? 'Erro' : 'Sucesso';
+  let title = type === 'error' ? window.i18n.t('errors') : window.i18n.t('valids');
   let message = text.replace(/^([✔️❌✅⚠️]+)\s*/, '');
   return Object.assign(document.createElement('div'), {
     className: type === 'error' ? 'result-error' : 'result-success',
