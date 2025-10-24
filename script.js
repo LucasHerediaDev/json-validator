@@ -74,30 +74,36 @@ function validarBody(body) {
   const validos = [];
   const usedIdempotencyKeys = new Set(); // Para simular a unicidade por sessão
 
-  // Campos permitidos pela documentação (extras não devem ser enviados)
-  const allowedKeys = [
-    'chaveIdempotencia',
-    'chavePix',
-    'codigoCategoria',
-    'recebedorNome',
-    'devedorDocumento',
-    'devedorNome',
-    'cidade',
-    'valorOriginal',
-    'modalidadeAlteracao',
-    'expiracaoEmSegundos',
-    'reutilizavel',
-    'tid',
-    // opcionais
-    'solicitacaoPagador',
-    'cep',
-    'dadosAdicionais'
-  ];
-  Object.keys(body || {}).forEach((key) => {
-    if (!allowedKeys.includes(key)) {
-      erros.push(window.i18n.t('error_field_not_allowed', { key }));
+    // Definição dos campos obrigatórios e opcionais
+    const requiredKeys = [
+      'chaveIdempotencia', 'chavePix', 'codigoCategoria', 'recebedorNome',
+      'devedorDocumento', 'devedorNome', 'cidade', 'valorOriginal',
+      'modalidadeAlteracao', 'expiracaoEmSegundos', 'reutilizavel', 'tid'
+    ];
+  
+    const optionalKeys = ['solicitacaoPagador', 'cep', 'dadosAdicionais'];
+    const allowedKeys = [...requiredKeys, ...optionalKeys];
+    const bodyKeys = new Set(Object.keys(body || {}));
+  
+    // 1. Valida se todos os campos obrigatórios estão presentes
+    for (const key of requiredKeys) {
+      if (!bodyKeys.has(key)) {
+        erros.push(window.i18n.t('error_field_required', { key }));
+      }
     }
-  });
+  
+    // 2. Valida se não há campos não permitidos
+    for (const key of bodyKeys) {
+      if (!allowedKeys.includes(key)) {
+        erros.push(window.i18n.t('error_field_not_allowed', { key }));
+      }
+    }
+  
+    // Se houver erros estruturais, podemos parar aqui para evitar mais erros
+    if (erros.length > 0) {
+      return { erros, validos };
+    }
+  
 
   // chaveIdempotencia
   if (!body.chaveIdempotencia) {
@@ -724,3 +730,5 @@ clearBtn.addEventListener('click', () => {
   countValidos.textContent = '0';
   syncHighlight(); // Garante que o destaque do JSON também seja limpo
 });
+
+
