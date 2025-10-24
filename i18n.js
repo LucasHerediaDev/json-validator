@@ -61,6 +61,7 @@
       field_tid_detail: 'string • obrigatório • mínimo 6 caracteres',
       field_tid_desc: 'Identificador da transação.',
       // Validation errors
+      error_field_required: 'O campo "${key}" é obrigatório.',
       error_field_not_allowed: 'Campo "${key}" não é permitido pela documentação.',
       error_chaveIdempotencia_required: 'Campo "chaveIdempotencia" é obrigatório.',
       error_chaveIdempotencia_invalid_uuid: 'Campo "chaveIdempotencia" deve ser um UUID válido.',
@@ -181,6 +182,7 @@
       field_tid_detail: 'string • required • minimum 6 characters',
       field_tid_desc: 'Transaction identifier.',
       // Validation errors
+      error_field_required: 'Field "${key}" is required.',
       error_field_not_allowed: 'Field "${key}" is not allowed by the documentation.',
       error_chaveIdempotencia_required: 'Field "chaveIdempotencia" is required.',
       error_chaveIdempotencia_invalid_uuid: 'Field "chaveIdempotencia" must be a valid UUID.',
@@ -260,10 +262,16 @@
     translatePage();
   }
 
-  function t(key){
+  function t(key, replacements = {}) {
     const lang = getLang();
     const dict = dictionaries[lang] || dictionaries[DEFAULT_LANG];
-    return dict[key] || key;
+    let text = dict[key] || key;
+    // Loop para substituir todos os placeholders
+    for (const placeholder in replacements) {
+      const value = replacements[placeholder];
+      text = text.replace(new RegExp(`\\$\\{${placeholder}\\}`, 'g'), value);
+    }
+    return text;
   }
 
   function translatePage(){
