@@ -63,6 +63,7 @@
       // Validation errors
       error_field_required: 'O campo "${key}" é obrigatório.',
       error_field_not_allowed: 'Campo "${key}" não é permitido pela documentação.',
+      error_field_suggestion: 'Campo "${key}" não é permitido. Você quis dizer "${suggestion}"?',
       error_chaveIdempotencia_required: 'Campo "chaveIdempotencia" é obrigatório.',
       error_chaveIdempotencia_invalid_uuid: 'Campo "chaveIdempotencia" deve ser um UUID válido.',
       error_chavePix_required: 'Campo "chavePix" é obrigatório.',
@@ -184,6 +185,7 @@
       // Validation errors
       error_field_required: 'Field "${key}" is required.',
       error_field_not_allowed: 'Field "${key}" is not allowed by the documentation.',
+      error_field_suggestion: 'Field "${key}" is not allowed. Did you mean "${suggestion}"?',
       error_chaveIdempotencia_required: 'Field "chaveIdempotencia" is required.',
       error_chaveIdempotencia_invalid_uuid: 'Field "chaveIdempotencia" must be a valid UUID.',
       error_chavePix_required: 'Field "chavePix" is required.',
@@ -266,10 +268,8 @@
     const lang = getLang();
     const dict = dictionaries[lang] || dictionaries[DEFAULT_LANG];
     let text = dict[key] || key;
-    // Loop para substituir todos os placeholders
     for (const placeholder in replacements) {
-      const value = replacements[placeholder];
-      text = text.replace(new RegExp(`\\$\\{${placeholder}\\}`, 'g'), value);
+      text = text.replace(`\${${placeholder}}`, replacements[placeholder]);
     }
     return text;
   }

@@ -92,10 +92,25 @@ function validarBody(body) {
       }
     }
   
-    // 2. Valida se não há campos não permitidos
+    // 2. Valida se não há campos não permitidos e sugere correções
     for (const key of bodyKeys) {
       if (!allowedKeys.includes(key)) {
-        erros.push(window.i18n.t('error_field_not_allowed', { key }));
+        let suggestion = null;
+        let minDistance = 3; // Limite para evitar sugestões muito diferentes
+
+        for (const allowedKey of allowedKeys) {
+          const distance = levenshteinDistance(key.toLowerCase(), allowedKey.toLowerCase());
+          if (distance < minDistance) {
+            minDistance = distance;
+            suggestion = allowedKey;
+          }
+        }
+
+        if (suggestion) {
+          erros.push(window.i18n.t('error_field_suggestion', { key, suggestion }));
+        } else {
+          erros.push(window.i18n.t('error_field_not_allowed', { key }));
+        }
       }
     }
   
@@ -328,6 +343,31 @@ function validarBody(body) {
         erros.push(window.i18n.t('error_solicitacaoPagador_invalid_type'));
       }
     }
+  }
+  function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
+    }
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
   }
 
   // devedorDocumento (CPF ou CNPJ válido) - aceitar apenas dígitos (sem pontuação)
